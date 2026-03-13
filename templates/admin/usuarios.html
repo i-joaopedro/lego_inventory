@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% block title %}Gerenciar Equipe{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-800 mb-0">Gerenciar Equipe</h2>
+        <p class="text-muted small mb-0">{{ usuarios|length }} usuários cadastrados</p>
+    </div>
+    <a href="{{ url_for('novo_usuario') }}" class="btn btn-primary fw-semibold">
+        <i class="bi bi-person-plus me-2"></i>Novo Usuário
+    </a>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+            <thead class="bg-light">
+                <tr>
+                    <th>Usuário</th>
+                    <th>Cargo</th>
+                    <th>Escola / Acesso</th>
+                    <th>Último Login</th>
+                    <th>Status</th>
+                    <th class="text-end">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in usuarios %}
+                <tr class="{% if not u.ativo %}table-secondary opacity-50{% endif %}">
+                    <td>
+                        <div class="fw-semibold">{{ u.username }}</div>
+                        <small class="text-muted">ID #{{ u.id }}</small>
+                    </td>
+                    <td>
+                        <span class="badge {% if u.role == 'admin' %}badge-admin
+                                          {% elif u.role == 'pedagogo' %}badge-pedagogo
+                                          {% else %}badge-auxiliar{% endif %}">
+                            {{ u.role|capitalize }}
+                        </span>
+                    </td>
+                    <td class="small">{{ u.escola or '—' }}</td>
+                    <td class="small text-muted">
+                        {% if u.ultimo_login %}
+                            {{ u.ultimo_login.strftime('%d/%m/%Y %H:%M') }}
+                        {% else %}
+                            <span class="text-warning">Nunca</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if u.ativo %}
+                        <span class="badge badge-status-completo">Ativo</span>
+                        {% else %}
+                        <span class="badge badge-status-incompleto">Inativo</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <a href="{{ url_for('editar_usuario', uid=u.id) }}"
+                           class="btn btn-sm btn-outline-secondary me-1" title="Editar">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        {% if u.id != session['user_id'] %}
+                        <form method="POST" action="{{ url_for('toggle_usuario', uid=u.id) }}"
+                              class="d-inline"
+                              onsubmit="return confirm('{{ 'Desativar' if u.ativo else 'Ativar' }} o usuário \'{{ u.username }}\'?')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit"
+                                    class="btn btn-sm {% if u.ativo %}btn-outline-warning{% else %}btn-outline-success{% endif %} me-1"
+                                    title="{{ 'Desativar' if u.ativo else 'Ativar' }}">
+                                <i class="bi {% if u.ativo %}bi-person-x{% else %}bi-person-check{% endif %}"></i>
+                            </button>
+                        </form>
+                        <button type="button"
+                                class="btn btn-sm btn-outline-danger"
+                                title="Excluir usuário"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalExcluir"
+                                data-uid="{{ u.id }}"
+                                data-nome="{{ u.username }}"
+                                data-role="{{ u.role }}">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{# Modal de confirmação de exclusão #}
+<div class="modal fade" id="modalExcluir" tabindex="-1" aria-labelledby="modalExcluirLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title fw-bold" id="modalExcluirLabel">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>Confirmar Exclusão
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body py-4">
+        <p class="mb-1">Você está prestes a excluir <strong>permanentemente</strong> o usuário:</p>
+        <div class="alert alert-danger d-flex align-items-center gap-2 my-3 mb-2">
+          <i class="bi bi-person-fill fs-4"></i>
+          <div>
+            <div class="fw-bold fs-5" id="modalNomeUsuario">—</div>
+            <small id="modalRoleUsuario" class="text-muted">—</small>
+          </div>
+        </div>
+        <p class="text-muted small mb-0">
+          <i class="bi bi-info-circle me-1"></i>
+          Esta ação <strong>não pode ser desfeita</strong>. O usuário será removido do sistema.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-lg me-1"></i>Cancelar
+        </button>
+        <form method="POST" id="formExcluirUsuario" class="d-inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-danger fw-bold">
+            <i class="bi bi-trash me-1"></i>Excluir permanentemente
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('modalExcluir').addEventListener('show.bs.modal', function(e) {
+  const btn  = e.relatedTarget;
+  const uid  = btn.getAttribute('data-uid');
+  const nome = btn.getAttribute('data-nome');
+  const role = btn.getAttribute('data-role');
+  document.getElementById('modalNomeUsuario').textContent = nome;
+  document.getElementById('modalRoleUsuario').textContent = role.charAt(0).toUpperCase() + role.slice(1);
+  document.getElementById('formExcluirUsuario').action = '/admin/usuario/' + uid + '/deletar';
+});
+</script>
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block title %}Composição — {{ modelo.nome }}{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+    <a href="{{ url_for('listar_modelos') }}" class="btn btn-light btn-sm me-3">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <div>
+        <h2 class="fw-800 mb-0">Composição: {{ modelo.nome }}</h2>
+        <p class="text-muted small mb-0">{{ modelo.pecas_obrigatorias|length }} peças configuradas</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    {# PAINEL ADICIONAR #}
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm p-4 sticky-top" style="top:70px">
+            <h5 class="fw-bold mb-3">Vincular Peça</h5>
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Selecionar Peça</label>
+                    <select name="peca_id" class="form-select" required>
+                        <option value="">Escolha uma peça...</option>
+                        {% for p in pecas_catalogo %}
+                        <option value="{{ p.id }}">{{ p.codigo_lego }} — {{ p.nome }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Quantidade</label>
+                    <input type="number" name="quantidade" class="form-control"
+                           value="1" min="1" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 fw-bold">
+                    <i class="bi bi-plus-circle me-2"></i>Adicionar
+                </button>
+            </form>
+        </div>
+    </div>
+
+    {# LISTA DE PEÇAS DO KIT #}
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Imagem</th>
+                            <th>Código</th>
+                            <th>Nome</th>
+                            <th class="text-center">Qtd</th>
+                            <th class="text-end">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in modelo.pecas_obrigatorias %}
+                        <tr>
+                            <td>
+                                <img src="{{ url_for('static', filename='uploads/' + item.peca.imagem_url) }}"
+                                     class="rounded" width="40" height="40" style="object-fit:cover;"
+                                     onerror="this.src='https://placehold.co/40x40?text=?'">
+                            </td>
+                            <td><code class="small">{{ item.peca.codigo_lego }}</code></td>
+                            <td class="fw-semibold small">{{ item.peca.nome }}</td>
+                            <td class="text-center">
+                                <span class="badge bg-secondary">{{ item.quantidade_esperada }}</span>
+                            </td>
+                            <td class="text-end">
+                                <form method="POST"
+                                      action="{{ url_for('remover_item_composicao', item_id=item.id) }}"
+                                      onsubmit="return confirm('Remover esta peça do kit?')">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">
+                                Nenhuma peça adicionada ainda.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

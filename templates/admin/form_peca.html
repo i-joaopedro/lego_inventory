@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Editar' if peca else 'Nova' }} Peça{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="d-flex align-items-center mb-4">
+            <a href="{{ url_for('listar_pecas') }}" class="btn btn-light btn-sm me-3">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <h3 class="fw-800 mb-0">
+                {{ 'Editar Peça' if peca else 'Nova Peça no Catálogo' }}
+            </h3>
+        </div>
+
+        <div class="card shadow-sm border-0 p-4">
+            <form method="POST"
+                  action="{{ url_for('editar_peca', pid=peca.id) if peca else url_for('nova_peca') }}"
+                  enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                {% if not peca %}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Código LEGO</label>
+                    <input type="text" name="codigo_lego" class="form-control"
+                           placeholder="Ex: 3001" required
+                           pattern="[A-Za-z0-9\-]+" title="Somente letras, números e hífens">
+                    <div class="form-text">Será usado como identificador único.</div>
+                </div>
+                {% else %}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Código LEGO</label>
+                    <input type="text" class="form-control" value="{{ peca.codigo_lego }}" disabled>
+                </div>
+                {% endif %}
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Nome da Peça</label>
+                    <input type="text" name="nome" class="form-control"
+                           value="{{ peca.nome if peca else '' }}"
+                           placeholder="Ex: Bloco 2x4 Azul" required>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">
+                        Foto {{ '(deixe em branco para manter a atual)' if peca else '' }}
+                    </label>
+                    {% if peca and peca.imagem_url != 'sem-foto.png' %}
+                    <div class="mb-2">
+                        <img src="{{ url_for('static', filename='uploads/' + peca.imagem_url) }}"
+                             class="rounded" style="height:80px;width:80px;object-fit:cover;">
+                    </div>
+                    {% endif %}
+                    <input type="file" name="foto" class="form-control"
+                           accept=".png,.jpg,.jpeg,.webp"
+                           {% if not peca %}required{% endif %}>
+                    <div class="form-text">PNG, JPG ou JPEG · máx. 5 MB · fundo branco recomendado.</div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('listar_pecas') }}" class="btn btn-light flex-grow-1">Cancelar</a>
+                    <button type="submit" class="btn btn-primary flex-grow-1 fw-bold">
+                        {{ 'Salvar Alterações' if peca else 'Cadastrar Peça' }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

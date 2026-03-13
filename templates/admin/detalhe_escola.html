@@ -1,0 +1,294 @@
+{% extends 'base.html' %}
+{% block title %}{{ nome_escola }} — Detalhes{% endblock %}
+
+{% block content %}
+{% set is_admin = session.get('user_role') == 'admin' %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <nav aria-label="breadcrumb" class="mb-1">
+      <ol class="breadcrumb small mb-0">
+        <li class="breadcrumb-item"><a href="{{ url_for('lista_escolas') }}">Escolas</a></li>
+        <li class="breadcrumb-item active">{{ nome_escola }}</li>
+      </ol>
+    </nav>
+    <h2 class="fw-800 mb-0">{{ nome_escola }}</h2>
+    {% if escola_obj %}
+    <span class="text-muted small">
+      {% if escola_obj.cidade %}<i class="bi bi-geo-alt me-1"></i>{{ escola_obj.cidade }} · {% endif %}
+      {% if escola_obj.responsavel %}<i class="bi bi-person me-1"></i>{{ escola_obj.responsavel }}{% endif %}
+    </span>
+    {% endif %}
+  </div>
+  <div class="d-flex gap-2">
+    {% if is_admin %}
+    <a href="{{ url_for('nova_unidade') }}?escola={{ nome_escola|urlencode }}"
+       class="btn btn-primary btn-sm fw-semibold">
+      <i class="bi bi-plus me-1"></i>Novo Kit
+    </a>
+    <a href="{{ url_for('editar_escola', eid=escola_obj.id) if escola_obj else '#' }}"
+       class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-pencil me-1"></i>Editar Escola
+    </a>
+    {% endif %}
+    <div class="dropdown">
+      <button class="btn btn-outline-primary btn-sm fw-semibold dropdown-toggle" data-bs-toggle="dropdown">
+        <i class="bi bi-file-earmark-pdf me-1"></i>Relatório
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+        <li>
+          <a class="dropdown-item"
+             href="{{ url_for('relatorio_escola_view', nome_escola=nome_escola, modo='completo') }}">
+            <i class="bi bi-list-check me-2 text-primary"></i>Ver relatório completo
+          </a>
+        </li>
+        <li>
+          <a class="dropdown-item"
+             href="{{ url_for('relatorio_escola_view', nome_escola=nome_escola, modo='faltantes') }}">
+            <i class="bi bi-exclamation-triangle me-2 text-danger"></i>Ver apenas faltantes
+          </a>
+        </li>
+        <li><hr class="dropdown-divider"></li>
+        <li>
+          <a class="dropdown-item"
+             href="{{ url_for('relatorio_escola_pdf', nome_escola=nome_escola, modo='completo') }}">
+            <i class="bi bi-file-earmark-pdf me-2 text-primary"></i>PDF completo
+          </a>
+        </li>
+        <li>
+          <a class="dropdown-item"
+             href="{{ url_for('relatorio_escola_pdf', nome_escola=nome_escola, modo='faltantes') }}">
+            <i class="bi bi-file-earmark-pdf me-2 text-danger"></i>PDF de faltantes
+          </a>
+        </li>
+      </ul>
+    </div>
+    <a href="{{ url_for('lista_escolas') }}" class="btn btn-light btn-sm">
+      <i class="bi bi-arrow-left me-1"></i>Voltar
+    </a>
+  </div>
+</div>
+
+{# MÉTRICAS #}
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card stat-card p-3 text-center">
+      <div class="fw-800 fs-2">{{ total }}</div>
+      <div class="small text-muted">Total de Kits</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card stat-card success p-3 text-center">
+      <div class="fw-800 fs-2 text-success">{{ completos }}</div>
+      <div class="small text-muted">Completos</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card stat-card danger p-3 text-center">
+      <div class="fw-800 fs-2 text-danger">{{ incompletos }}</div>
+      <div class="small text-muted">Incompletos</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card stat-card warning p-3 text-center">
+      <div class="fw-800 fs-2 text-warning">{{ pendentes }}</div>
+      <div class="small text-muted">Pendentes</div>
+    </div>
+  </div>
+</div>
+
+{# ABAS #}
+<ul class="nav nav-tabs mb-4" id="escolaTabs" role="tablist">
+  {% for nome_mod, kits_mod in modelos_kits.items() %}
+  <li class="nav-item" role="presentation">
+    <button class="nav-link fw-semibold {% if loop.first %}active{% endif %}"
+            id="tab-{{ loop.index }}-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#tab-{{ loop.index }}"
+            type="button" role="tab">
+      <i class="bi bi-layers me-1"></i>{{ nome_mod }}
+      <span class="badge bg-secondary ms-2 fw-normal">{{ kits_mod|length }}</span>
+    </button>
+  </li>
+  {% endfor %}
+  {% if ranking %}
+  <li class="nav-item" role="presentation">
+    <button class="nav-link fw-semibold"
+            id="tab-ranking-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#tab-ranking"
+            type="button" role="tab">
+      <i class="bi bi-graph-down-arrow me-1 text-danger"></i>Análise de Perdas
+    </button>
+  </li>
+  {% endif %}
+</ul>
+
+<div class="tab-content" id="escolaTabsContent">
+
+  {# ABA POR MODELO #}
+  {% for nome_mod, kits_mod in modelos_kits.items() %}
+  <div class="tab-pane fade {% if loop.first %}show active{% endif %}"
+       id="tab-{{ loop.index }}" role="tabpanel">
+
+    {# Progresso do modelo #}
+    {% set comp_mod = kits_mod|selectattr('status_atual','equalto','Completo')|list|length %}
+    {% if kits_mod|length > 0 %}
+    <div class="d-flex align-items-center gap-3 mb-3 p-3 bg-white rounded-3 shadow-sm">
+      <div class="text-muted small">{{ comp_mod }}/{{ kits_mod|length }} completos</div>
+      <div class="progress flex-grow-1" style="height:8px;max-width:200px">
+        <div class="progress-bar {% if comp_mod == kits_mod|length %}bg-success{% else %}bg-warning{% endif %}"
+             style="width:{{ (comp_mod/kits_mod|length*100)|round(0)|int }}%"></div>
+      </div>
+      <div class="fw-bold small {% if comp_mod == kits_mod|length %}text-success{% else %}text-warning{% endif %}">
+        {{ (comp_mod/kits_mod|length*100)|round(0)|int }}%
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="row g-3">
+      {% for u in kits_mod %}
+      {% set uc = u.ultima_conferencia %}
+      {% set perdidas = namespace(n=0) %}
+      {% if uc %}{% for d in uc.detalhes %}{% if d.quantidade_encontrada < d.quantidade_esperada_na_epoca %}{% set perdidas.n = perdidas.n + (d.quantidade_esperada_na_epoca - d.quantidade_encontrada) %}{% endif %}{% endfor %}{% endif %}
+
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 border-0 shadow-sm overflow-hidden">
+          <div class="{% if u.status_atual == 'Completo' %}bg-success{% elif u.status_atual == 'Incompleto' %}bg-danger{% else %}bg-warning{% endif %}" style="height:4px"></div>
+          <div class="card-body p-3">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <h6 class="fw-800 mb-0">{{ u.identificador }}</h6>
+              <span class="badge {% if u.status_atual == 'Completo' %}badge-status-completo{% elif u.status_atual == 'Incompleto' %}badge-status-incompleto{% else %}badge-status-pendente{% endif %}">
+                {{ u.status_atual }}
+              </span>
+            </div>
+
+            {% if u.saude_percentual is not none %}
+            <div class="mb-2">
+              <div class="d-flex justify-content-between mb-1">
+                <small class="text-muted">Saúde</small>
+                <small class="fw-bold {% if u.saude_percentual >= 90 %}text-success{% elif u.saude_percentual >= 60 %}text-warning{% else %}text-danger{% endif %}">
+                  {{ u.saude_percentual }}%
+                </small>
+              </div>
+              <div class="progress" style="height:5px">
+                <div class="progress-bar {% if u.saude_percentual >= 90 %}bg-success{% elif u.saude_percentual >= 60 %}bg-warning{% else %}bg-danger{% endif %}" style="width:{{ u.saude_percentual }}%"></div>
+              </div>
+            </div>
+            {% endif %}
+
+            {% if perdidas.n > 0 %}
+            <div class="alert alert-danger py-1 px-2 mb-2 small">
+              <i class="bi bi-exclamation-triangle me-1"></i>{{ perdidas.n }} peça(s) faltando
+            </div>
+            {% endif %}
+
+            <small class="text-muted d-block mb-3">
+              <i class="bi bi-clock me-1"></i>
+              {% if uc %}Conf: {{ uc.data_conferencia.strftime('%d/%m/%Y') }} · {{ uc.responsavel }}
+              {% else %}<span class="text-warning">Nunca conferido</span>{% endif %}
+            </small>
+
+            <div class="d-flex gap-2">
+              <a href="{{ url_for('historico_kit_auxiliar', kit_id=u.id) }}"
+                 class="btn btn-outline-primary btn-sm flex-grow-1 fw-semibold">
+                <i class="bi bi-clock-history me-1"></i>Histórico
+              </a>
+              <div class="dropdown">
+                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown" title="Relatório">
+                  <i class="bi bi-file-earmark-pdf"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                  <li><a class="dropdown-item small"
+                         href="{{ url_for('relatorio_kit_view', kit_id=u.id, modo='completo') }}">
+                    <i class="bi bi-list-check me-2 text-primary"></i>Ver completo
+                  </a></li>
+                  <li><a class="dropdown-item small"
+                         href="{{ url_for('relatorio_kit_view', kit_id=u.id, modo='faltantes') }}">
+                    <i class="bi bi-exclamation-triangle me-2 text-danger"></i>Ver faltantes
+                  </a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item small"
+                         href="{{ url_for('relatorio_kit_pdf', kit_id=u.id, modo='completo') }}">
+                    <i class="bi bi-file-earmark-pdf me-2 text-primary"></i>PDF completo
+                  </a></li>
+                  <li><a class="dropdown-item small"
+                         href="{{ url_for('relatorio_kit_pdf', kit_id=u.id, modo='faltantes') }}">
+                    <i class="bi bi-file-earmark-pdf me-2 text-danger"></i>PDF faltantes
+                  </a></li>
+                </ul>
+              </div>
+              {% if is_admin %}
+              <a href="{{ url_for('editar_unidade', uid=u.id) }}"
+                 class="btn btn-outline-secondary btn-sm" title="Editar">
+                <i class="bi bi-pencil"></i>
+              </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+
+  {# ABA ANÁLISE DE PERDAS #}
+  {% if ranking %}
+  <div class="tab-pane fade" id="tab-ranking" role="tabpanel">
+    <div class="row g-4">
+      <div class="col-md-7">
+        <h6 class="fw-bold mb-3">Peças com Maior Perda — Última Conferência</h6>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead class="bg-light">
+              <tr>
+                <th>#</th><th>Peça</th><th class="text-center">Perdas</th><th class="text-center">Kits afetados</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in ranking %}
+              <tr>
+                <td><span class="fw-bold {% if loop.index == 1 %}text-danger{% elif loop.index <= 3 %}text-warning{% else %}text-muted{% endif %}">#{{ loop.index }}</span></td>
+                <td>
+                  <span class="fw-semibold small">{{ p.nome }}</span>
+                  <small class="text-muted d-block"><code>{{ p.codigo }}</code></small>
+                </td>
+                <td class="text-center"><span class="badge badge-status-incompleto">-{{ p.perdas }}</span></td>
+                <td class="text-center"><span class="badge bg-secondary">{{ p.kits }}</span></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="col-md-5">
+        <canvas id="graficoEscolaPerdas" height="250"></canvas>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if ranking %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const rankData = {{ ranking | tojson }};
+new Chart(document.getElementById('graficoEscolaPerdas').getContext('2d'), {
+  type: 'bar',
+  data: {
+    labels: rankData.map(p => p.nome.length > 18 ? p.nome.slice(0,18)+'…' : p.nome),
+    datasets: [{ label: 'Peças faltando', data: rankData.map(p => p.perdas),
+      backgroundColor: rankData.map((_,i) => i===0?'#EF4444':i<3?'#F59E0B':'#94A3B8'),
+      borderRadius: 4 }]
+  },
+  options: { indexAxis:'y', responsive:true,
+    plugins:{legend:{display:false}},
+    scales:{x:{beginAtZero:true,ticks:{precision:0}}} }
+});
+</script>
+{% endif %}
+{% endblock %}

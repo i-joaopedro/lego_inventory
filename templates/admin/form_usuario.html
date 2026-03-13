@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block title %}{% if usuario %}Editar Usuário{% else %}Novo Usuário{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8 col-lg-6">
+    <div class="d-flex align-items-center mb-4 gap-3">
+      <a href="{{ url_for('gerenciar_usuarios') }}" class="btn btn-light btn-sm">
+        <i class="bi bi-arrow-left"></i>
+      </a>
+      <div>
+        <h3 class="fw-800 mb-0">{% if usuario %}Editar Usuário{% else %}Novo Usuário{% endif %}</h3>
+        <p class="text-muted small mb-0">{% if usuario %}{{ usuario.username }}{% else %}Cadastrar novo membro da equipe{% endif %}</p>
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm p-4">
+      <form method="POST" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        {% if not usuario %}
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Usuário <span class="text-danger">*</span></label>
+          <input type="text" name="username" class="form-control"
+                 placeholder="login do usuário" required autofocus>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Senha <span class="text-danger">*</span></label>
+          <input type="password" name="password" class="form-control"
+                 placeholder="Mínimo 6 caracteres" required minlength="6">
+        </div>
+        {% endif %}
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Cargo / Perfil <span class="text-danger">*</span></label>
+          <select name="role" class="form-select" id="roleSelect" onchange="ajustarEscolaUI()">
+            <option value="auxiliar" {% if usuario and usuario.role == 'auxiliar' %}selected{% endif %}>Auxiliar</option>
+            <option value="pedagogo" {% if usuario and usuario.role == 'pedagogo' %}selected{% endif %}>Pedagogo</option>
+            <option value="admin" {% if usuario and usuario.role == 'admin' %}selected{% endif %}>Administrador</option>
+          </select>
+        </div>
+
+        <div class="mb-3" id="escolaWrap">
+          <label class="form-label fw-semibold">Escola Vinculada</label>
+          <select name="escola" class="form-select" id="escolaSelect">
+            <option value="Todas">-- Todas as escolas (acesso total) --</option>
+            {% for e in escolas_lista %}
+            <option value="{{ e.nome }}"
+              {% if usuario and usuario.escola == e.nome %}selected
+              {% elif usuario and e.nome in (usuario.escola or '') %}selected
+              {% endif %}>{{ e.nome }}{% if e.cidade %} — {{ e.cidade }}{% endif %}</option>
+            {% endfor %}
+          </select>
+          <small class="text-muted" id="escolaHint">
+            Auxiliar deve ter uma escola específica. Pedagogo pode ter uma ou "Todas".
+          </small>
+        </div>
+
+        {% if usuario %}
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Nova Senha <small class="text-muted fw-normal">(deixe em branco para manter)</small></label>
+          <input type="password" name="nova_senha" class="form-control"
+                 placeholder="Nova senha (opcional)" minlength="6">
+        </div>
+        <div class="mb-4">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" name="ativo" id="ativoCheck"
+                   {% if usuario.ativo %}checked{% endif %}>
+            <label class="form-check-label fw-semibold" for="ativoCheck">Conta ativa</label>
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary flex-grow-1 fw-bold">
+            <i class="bi bi-check-lg me-2"></i>{% if usuario %}Salvar Alterações{% else %}Cadastrar Usuário{% endif %}
+          </button>
+          <a href="{{ url_for('gerenciar_usuarios') }}" class="btn btn-outline-secondary">Cancelar</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function ajustarEscolaUI() {
+  const role = document.getElementById('roleSelect').value;
+  const hint = document.getElementById('escolaHint');
+  if (role === 'admin') {
+    hint.textContent = 'Administradores têm acesso a todas as escolas automaticamente.';
+    document.getElementById('escolaSelect').value = 'Todas';
+  } else if (role === 'pedagogo') {
+    hint.textContent = 'Pedagogo supervisiona as escolas selecionadas. Use "Todas" para acesso global.';
+  } else {
+    hint.textContent = 'Auxiliar deve ter uma escola específica atribuída.';
+  }
+}
+ajustarEscolaUI();
+</script>
+{% endblock %}

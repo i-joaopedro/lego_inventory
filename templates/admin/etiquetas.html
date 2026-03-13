@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Etiquetas QR — Admin{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-800 mb-0">Gerar Etiquetas QR Code</h2>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card p-4">
+            <h5 class="fw-bold mb-3">Filtrar por Escola</h5>
+            <div class="list-group list-group-flush">
+                {% for escola in escolas %}
+                <a href="{{ url_for('etiquetas_auxiliar', escola=escola) }}"
+                   class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-building me-2 text-primary"></i>{{ escola }}</span>
+                    <i class="bi bi-qr-code text-muted"></i>
+                </a>
+                {% else %}
+                <p class="text-muted small">Nenhuma escola cadastrada.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card p-4 text-center">
+            <i class="bi bi-qr-code text-muted mb-3" style="font-size:4rem"></i>
+            <h5 class="fw-bold">Selecione uma escola à esquerda</h5>
+            <p class="text-muted small">Você verá todas as etiquetas para impressão.</p>
+            <a href="{{ url_for('etiquetas_auxiliar') }}"
+               class="btn btn-primary">
+                <i class="bi bi-collection me-2"></i>Ver Todas as Etiquetas
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

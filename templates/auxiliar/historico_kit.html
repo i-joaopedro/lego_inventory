@@ -1,0 +1,336 @@
+{% extends 'base.html' %}
+{% block title %}Histórico — {{ unidade.identificador }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-800 mb-0">{{ unidade.identificador }}</h2>
+        <span class="badge bg-primary">{{ unidade.modelo.nome }}</span>
+        <span class="text-muted small ms-2">
+            <i class="bi bi-building me-1"></i>{{ unidade.escola }}
+        </span>
+    </div>
+    <div class="d-flex gap-2">
+        <div class="dropdown">
+          <button class="btn btn-outline-primary btn-sm fw-semibold dropdown-toggle" data-bs-toggle="dropdown">
+            <i class="bi bi-file-earmark-pdf me-1"></i>Relatório
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+            <li>
+              <a class="dropdown-item"
+                 href="{{ url_for('relatorio_kit_view', kit_id=unidade.id, modo='completo') }}">
+                <i class="bi bi-list-check me-2 text-primary"></i>Ver relatório completo
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item"
+                 href="{{ url_for('relatorio_kit_view', kit_id=unidade.id, modo='faltantes') }}">
+                <i class="bi bi-exclamation-triangle me-2 text-danger"></i>Ver apenas faltantes
+              </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <a class="dropdown-item"
+                 href="{{ url_for('relatorio_kit_pdf', kit_id=unidade.id, modo='completo') }}">
+                <i class="bi bi-file-earmark-pdf me-2 text-primary"></i>PDF completo
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item"
+                 href="{{ url_for('relatorio_kit_pdf', kit_id=unidade.id, modo='faltantes') }}">
+                <i class="bi bi-file-earmark-pdf me-2 text-danger"></i>PDF de faltantes
+              </a>
+            </li>
+          </ul>
+        </div>
+        <a href="{{ url_for('conferir_kit', kit_id=unidade.id) }}"
+           class="btn btn-primary btn-sm fw-semibold">
+            <i class="bi bi-search me-1"></i>Nova Conferência
+        </a>
+        <a href="{{ url_for('conferencias_auxiliar') }}" class="btn btn-light btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Voltar
+        </a>
+    </div>
+</div>
+
+{# ── STATUS ATUAL ── #}
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card stat-card p-3 text-center">
+            <div class="fw-800 fs-2">{{ conferencias|length }}</div>
+            <div class="small text-muted">Conferências</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card {% if unidade.status_atual == 'Completo' %}success{% else %}danger{% endif %} p-3 text-center">
+            <div class="fw-800 fs-4 {% if unidade.status_atual == 'Completo' %}text-success{% else %}text-danger{% endif %}">
+                {{ unidade.status_atual }}
+            </div>
+            <div class="small text-muted">Status atual</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card p-3 text-center">
+            {% if unidade.saude_percentual is not none %}
+            <div class="fw-800 fs-2
+                {% if unidade.saude_percentual >= 90 %}text-success
+                {% elif unidade.saude_percentual >= 60 %}text-warning
+                {% else %}text-danger{% endif %}">
+                {{ unidade.saude_percentual }}%
+            </div>
+            {% else %}
+            <div class="fw-800 fs-2 text-muted">—</div>
+            {% endif %}
+            <div class="small text-muted">Saúde atual</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card p-3 text-center">
+            <div class="fw-800 fs-4 text-muted">
+                {% if conferencias %}
+                    {{ conferencias[0].data_conferencia.strftime('%d/%m/%y') }}
+                {% else %}—{% endif %}
+            </div>
+            <div class="small text-muted">Última conferência</div>
+        </div>
+    </div>
+</div>
+
+{# ── GRÁFICO DE SAÚDE ── #}
+{% if labels_graf|length > 1 %}
+<div class="card p-4 mb-4">
+    <h5 class="fw-bold mb-3">Evolução da Saúde do Kit</h5>
+    <canvas id="graficoSaude" height="90"></canvas>
+</div>
+{% endif %}
+
+{# ── TENDÊNCIA DE PERDA DE PEÇAS ── #}
+{% if tendencia_pecas %}
+<div class="card p-4 mb-4">
+    <h5 class="fw-bold mb-1">Tendência de Perda de Peças</h5>
+    <p class="text-muted small mb-3">
+        Comparando a primeira com a última conferência registrada.
+    </p>
+    <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+            <thead class="bg-light">
+                <tr>
+                    <th>Peça</th>
+                    <th class="text-center">1ª Conf.</th>
+                    <th class="text-center">Última Conf.</th>
+                    <th class="text-center">Variação</th>
+                    <th>Tendência</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in tendencia_pecas %}
+                <tr>
+                    <td>
+                        <span class="fw-semibold small">{{ p.nome }}</span>
+                        <small class="text-muted d-block"><code>{{ p.codigo }}</code></small>
+                    </td>
+                    <td class="text-center fw-bold">{{ p.antes }}</td>
+                    <td class="text-center fw-bold">{{ p.depois }}</td>
+                    <td class="text-center">
+                        {% if p.diff < 0 %}
+                        <span class="badge badge-status-incompleto">{{ p.diff }}</span>
+                        {% elif p.diff > 0 %}
+                        <span class="badge bg-info text-dark">+{{ p.diff }}</span>
+                        {% else %}
+                        <span class="badge badge-status-completo">=</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if p.diff < 0 %}
+                        <div class="progress" style="height:6px;width:100px">
+                            <div class="progress-bar bg-danger"
+                                 style="width:{{ [(p.diff|abs / p.antes * 100)|round(0)|int, 100]|min if p.antes > 0 else 100 }}%"></div>
+                        </div>
+                        <small class="text-danger">Perdendo peças</small>
+                        {% elif p.diff > 0 %}
+                        <small class="text-info">Mais do que esperado</small>
+                        {% else %}
+                        <small class="text-success">Estável</small>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{# ── LISTA DE CONFERÊNCIAS ── #}
+<h5 class="fw-bold mb-3">Histórico de Conferências
+    <span class="badge bg-secondary ms-2">{{ conferencias|length }}</span>
+</h5>
+
+{% for conf in conferencias %}
+<div class="card border-0 shadow-sm mb-3">
+    {# Cabeçalho da conferência #}
+    <div class="card-header bg-light border-0 d-flex justify-content-between align-items-center py-2 px-3"
+         data-bs-toggle="collapse"
+         data-bs-target="#conf-{{ conf.id }}"
+         style="cursor:pointer">
+        <div>
+            <strong class="me-2">
+                #{{ loop.revindex }} —
+                {{ conf.data_conferencia.strftime('%d/%m/%Y às %H:%M') }}
+            </strong>
+            <small class="text-muted">por {{ conf.responsavel or '—' }}</small>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge {% if conf.status_resultado == 'Completo' %}badge-status-completo
+                               {% else %}badge-status-incompleto{% endif %}">
+                {{ conf.status_resultado or 'Sem status' }}
+            </span>
+            {# Saúde desta conferência #}
+            {% set esp_total = namespace(v=0) %}
+            {% set enc_total = namespace(v=0) %}
+            {% for d in conf.detalhes %}
+                {% set esp_total.v = esp_total.v + d.quantidade_esperada_na_epoca %}
+                {% set enc_total.v = enc_total.v + d.quantidade_encontrada %}
+            {% endfor %}
+            {% if esp_total.v > 0 %}
+            {% set saude_conf = (enc_total.v / esp_total.v * 100)|round(1) %}
+            <span class="badge bg-light text-dark border">{{ saude_conf }}%</span>
+            {% endif %}
+            <i class="bi bi-chevron-down text-muted"></i>
+        </div>
+    </div>
+
+    {# Observações #}
+    {% if conf.observacoes %}
+    <div class="px-3 pt-2 pb-0">
+        <small class="text-muted">
+            <i class="bi bi-chat-left-text me-1"></i>{{ conf.observacoes }}
+        </small>
+    </div>
+    {% endif %}
+
+    {# Detalhes colapsável #}
+    <div class="collapse {% if loop.first %}show{% endif %}" id="conf-{{ conf.id }}">
+        <div class="card-body pt-2 px-3 pb-3">
+            {% if conf.detalhes %}
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Peça</th>
+                            <th class="text-center">Esperado</th>
+                            <th class="text-center">Encontrado</th>
+                            <th class="text-center">Diferença</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in conf.detalhes|sort(attribute='quantidade_encontrada') %}
+                        {% set diff = d.quantidade_encontrada - d.quantidade_esperada_na_epoca %}
+                        <tr class="{% if diff < 0 %}table-danger{% elif diff > 0 %}table-info{% endif %}">
+                            <td>
+                                <span class="small fw-semibold">{{ d.peca.nome if d.peca else '—' }}</span>
+                                {% if d.peca %}<small class="text-muted d-block"><code>{{ d.peca.codigo_lego }}</code></small>{% endif %}
+                            </td>
+                            <td class="text-center fw-bold">{{ d.quantidade_esperada_na_epoca }}</td>
+                            <td class="text-center fw-bold">{{ d.quantidade_encontrada }}</td>
+                            <td class="text-center">
+                                {% if diff < 0 %}
+                                <span class="fw-bold text-danger">{{ diff }}</span>
+                                {% elif diff > 0 %}
+                                <span class="fw-bold text-info">+{{ diff }}</span>
+                                {% else %}
+                                <span class="text-success">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if diff < 0 %}
+                                <span class="badge badge-status-incompleto">Faltando</span>
+                                {% elif diff > 0 %}
+                                <span class="badge bg-info text-dark">Excedente</span>
+                                {% else %}
+                                <span class="badge badge-status-completo">OK</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-light fw-bold">
+                        <tr>
+                            <td>TOTAL</td>
+                            <td class="text-center">{{ esp_total.v }}</td>
+                            <td class="text-center">{{ enc_total.v }}</td>
+                            <td class="text-center">
+                                {% set diff_total = enc_total.v - esp_total.v %}
+                                {% if diff_total < 0 %}
+                                <span class="text-danger">{{ diff_total }}</span>
+                                {% elif diff_total > 0 %}
+                                <span class="text-info">+{{ diff_total }}</span>
+                                {% else %}—{% endif %}
+                            </td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted small mb-0">Nenhum detalhe registrado.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="text-center py-5">
+    <i class="bi bi-clock-history text-muted" style="font-size:3rem"></i>
+    <p class="text-muted mt-2">Nenhuma conferência registrada ainda.</p>
+    <a href="{{ url_for('conferir_kit', kit_id=unidade.id) }}" class="btn btn-primary">
+        Iniciar Primeira Conferência
+    </a>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block extra_js %}
+{% if labels_graf|length > 1 %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+new Chart(document.getElementById('graficoSaude').getContext('2d'), {
+    type: 'line',
+    data: {
+        labels: {{ labels_graf | tojson }},
+        datasets: [{
+            label: 'Saúde (%)',
+            data: {{ valores_graf | tojson }},
+            borderColor: '#2563EB',
+            backgroundColor: 'rgba(37,99,235,0.08)',
+            borderWidth: 2.5,
+            fill: true,
+            tension: 0.35,
+            pointBackgroundColor: {{ valores_graf | tojson }}.map(v =>
+                v >= 90 ? '#10B981' : v >= 60 ? '#F59E0B' : '#EF4444'),
+            pointRadius: 6,
+            pointHoverRadius: 8,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: ctx => ` Saúde: ${ctx.parsed.y}%`
+                }
+            }
+        },
+        scales: {
+            y: {
+                min: 0, max: 100,
+                ticks: { callback: v => v + '%' },
+                grid: { color: 'rgba(0,0,0,0.05)' }
+            }
+        }
+    }
+});
+</script>
+{% endif %}
+{% endblock %}

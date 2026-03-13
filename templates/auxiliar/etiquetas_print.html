@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Etiquetas QR — {{ escola }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 no-print">
+    <div>
+        <h2 class="fw-800 mb-0">Etiquetas QR Code</h2>
+        <p class="text-muted small mb-0">{{ escola }} · {{ kits|length }} kits</p>
+    </div>
+    <button onclick="window.print()" class="btn btn-primary fw-bold">
+        <i class="bi bi-printer me-2"></i>Imprimir
+    </button>
+</div>
+
+<div class="row g-3">
+    {% for u in kits %}
+    <div class="col-6 col-md-4 col-lg-3">
+        <div class="card text-center p-3 border" style="page-break-inside: avoid;">
+            <h6 class="fw-bold mb-1">{{ u.identificador }}</h6>
+            <small class="text-muted d-block mb-2">{{ u.modelo.nome }}</small>
+
+            {# QR Code gerado localmente via API pública sem rastreamento #}
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data={{ url_for('conferir_kit', kit_id=u.id, _external=True) }}"
+                 style="width:140px;height:140px;" class="mx-auto d-block rounded mb-2"
+                 alt="QR Code {{ u.identificador }}">
+
+            <div class="fw-semibold small text-primary">{{ escola }}</div>
+            <small class="text-muted" style="font-size:0.65rem">
+                ID: {{ u.id }}
+            </small>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center py-5">
+        <p class="text-muted">Nenhum kit encontrado.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+@media print {
+    .card { border: 1px dashed #999 !important; }
+    body { background: white !important; }
+}
+</style>
+{% endblock %}

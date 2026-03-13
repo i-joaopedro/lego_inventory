@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}{% if escola %}Editar Escola{% else %}Nova Escola{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8 col-lg-6">
+    <div class="d-flex align-items-center mb-4 gap-3">
+      <a href="{{ url_for('lista_escolas') }}" class="btn btn-light btn-sm">
+        <i class="bi bi-arrow-left"></i>
+      </a>
+      <div>
+        <h3 class="fw-800 mb-0">{% if escola %}Editar Escola{% else %}Nova Escola{% endif %}</h3>
+        <p class="text-muted small mb-0">{% if escola %}Atualize os dados da escola{% else %}Cadastre uma nova unidade escolar{% endif %}</p>
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm p-4">
+      <form method="POST" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Nome da Escola <span class="text-danger">*</span></label>
+          <input type="text" name="nome" class="form-control"
+                 value="{{ escola.nome if escola else '' }}"
+                 placeholder="Ex: EMEF Monteiro Lobato" required autofocus>
+          <small class="text-muted">Este nome será usado em todos os kits e usuários vinculados.</small>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Cidade</label>
+          <input type="text" name="cidade" class="form-control"
+                 value="{{ escola.cidade if escola else '' }}"
+                 placeholder="Ex: São Paulo">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Responsável / Coordenador</label>
+          <input type="text" name="responsavel" class="form-control"
+                 value="{{ escola.responsavel if escola else '' }}"
+                 placeholder="Nome do responsável pelo laboratório">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Telefone de Contato</label>
+          <input type="text" name="telefone" class="form-control"
+                 value="{{ escola.telefone if escola else '' }}"
+                 placeholder="(11) 99999-9999">
+        </div>
+
+        {% if escola %}
+        <div class="mb-4">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" name="ativo" id="ativo"
+                   {% if escola.ativo %}checked{% endif %}>
+            <label class="form-check-label fw-semibold" for="ativo">Escola ativa</label>
+          </div>
+          <small class="text-muted">Escolas inativas não aparecem nos dropdowns de cadastro.</small>
+        </div>
+        {% endif %}
+
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary flex-grow-1 fw-bold">
+            <i class="bi bi-check-lg me-2"></i>{% if escola %}Salvar Alterações{% else %}Cadastrar Escola{% endif %}
+          </button>
+          <a href="{{ url_for('lista_escolas') }}" class="btn btn-outline-secondary">Cancelar</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

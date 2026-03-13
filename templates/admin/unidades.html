@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% block title %}Kits Físicos{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-800 mb-0">Kits Físicos</h2>
+        <p class="text-muted small mb-0">{{ unidades|length }} unidade(s)</p>
+    </div>
+    {% if session.get('user_role') == 'admin' %}
+    <a href="{{ url_for('nova_unidade') }}" class="btn btn-primary btn-sm fw-semibold">
+        <i class="bi bi-plus me-1"></i>Nova Unidade
+    </a>
+    {% endif %}
+</div>
+
+{# FILTRO #}
+<form method="GET" class="mb-3 d-flex gap-2">
+    <select name="escola" class="form-select form-select-sm" style="max-width:250px"
+            onchange="this.form.submit()">
+        <option value="">Todas as escolas</option>
+        {% for e in escolas %}
+        <option value="{{ e }}" {% if escola_filtro == e %}selected{% endif %}>{{ e }}</option>
+        {% endfor %}
+    </select>
+    {% if escola_filtro %}
+    <a href="{{ url_for('listar_unidades') }}" class="btn btn-outline-secondary btn-sm">Limpar</a>
+    {% endif %}
+</form>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="bg-light">
+                <tr>
+                    <th>Identificador</th>
+                    <th>Modelo</th>
+                    <th>Escola</th>
+                    <th>Status</th>
+                    <th>Saúde</th>
+                    <th>Última Conf.</th>
+                    <th class="text-end">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in unidades %}
+                <tr>
+                    <td class="fw-semibold">{{ u.identificador }}</td>
+                    <td class="small text-muted">{{ u.modelo.nome if u.modelo else '—' }}</td>
+                    <td class="small">{{ u.escola }}</td>
+                    <td>
+                        <span class="badge {% if u.status_atual == 'Completo' %}badge-status-completo
+                                          {% elif u.status_atual == 'Incompleto' %}badge-status-incompleto
+                                          {% else %}badge-status-pendente{% endif %}">
+                            {{ u.status_atual }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if u.saude_percentual is not none %}
+                        <div class="progress" style="height:6px;width:70px">
+                            <div class="progress-bar {% if u.saude_percentual >= 90 %}bg-success
+                                        {% elif u.saude_percentual >= 60 %}bg-warning
+                                        {% else %}bg-danger{% endif %}"
+                                 style="width:{{ u.saude_percentual }}%"></div>
+                        </div>
+                        <small class="text-muted">{{ u.saude_percentual }}%</small>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td class="small text-muted">
+                        {% if u.ultima_conferencia %}
+                        {{ u.ultima_conferencia.data_conferencia.strftime('%d/%m/%Y') }}
+                        {% else %}<span class="text-warning">Pendente</span>{% endif %}
+                    </td>
+                    <td class="text-end">
+                        <a href="{{ url_for('historico_kit', uid=u.id) }}"
+                           class="btn btn-sm btn-outline-secondary me-1" title="Histórico">
+                            <i class="bi bi-clock-history"></i>
+                        </a>
+                        <a href="{{ url_for('conferir_kit', kit_id=u.id) }}"
+                           class="btn btn-sm btn-outline-primary me-1" title="Conferir">
+                            <i class="bi bi-search"></i>
+                        </a>
+                        {% if session.get('user_role') == 'admin' %}
+                        <a href="{{ url_for('editar_unidade', uid=u.id) }}"
+                           class="btn btn-sm btn-outline-secondary me-1" title="Editar">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form method="POST" action="{{ url_for('deletar_unidade', uid=u.id) }}"
+                              class="d-inline"
+                              onsubmit="return confirm('Deletar {{ u.identificador }}? Todas as conferências serão perdidas!')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="btn btn-sm btn-outline-danger" title="Deletar">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">
+                        Nenhum kit encontrado.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

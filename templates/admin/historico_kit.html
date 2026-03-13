@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% block title %}Histórico — {{ unidade.identificador }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-800 mb-0">Histórico: {{ unidade.identificador }}</h2>
+        <span class="badge bg-primary">{{ unidade.modelo.nome }}</span>
+        <span class="text-muted small ms-2">{{ unidade.escola }}</span>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('conferir_kit', kit_id=unidade.id) }}"
+           class="btn btn-primary btn-sm fw-semibold">
+            <i class="bi bi-search me-1"></i>Nova Conferência
+        </a>
+        <a href="{{ url_for('listar_unidades') }}" class="btn btn-light btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Voltar
+        </a>
+    </div>
+</div>
+
+{# GRÁFICO #}
+{% if labels %}
+<div class="card p-4 mb-4">
+    <h5 class="fw-bold mb-3">Evolução da Saúde do Kit</h5>
+    <canvas id="grafico" height="100"></canvas>
+</div>
+{% endif %}
+
+{# CONFERÊNCIAS #}
+<h5 class="fw-bold mb-3">Histórico de Conferências</h5>
+{% if conferencias %}
+<div class="row g-3">
+    {% for c in conferencias|reverse %}
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-light border-0 d-flex justify-content-between align-items-center py-2">
+                <div>
+                    <strong>{{ c.data_conferencia.strftime('%d/%m/%Y %H:%M') }}</strong>
+                    <span class="text-muted small ms-2">por {{ c.responsavel }}</span>
+                </div>
+                <span class="badge {% if c.status_resultado == 'Completo' %}badge-status-completo
+                                   {% else %}badge-status-incompleto{% endif %}">
+                    {{ c.status_resultado or '—' }}
+                </span>
+            </div>
+            {% if c.observacoes %}
+            <div class="card-body py-2 px-3">
+                <small class="text-muted"><i class="bi bi-chat-left-text me-1"></i>{{ c.observacoes }}</small>
+            </div>
+            {% endif %}
+            {% if c.detalhes %}
+            <div class="card-body pt-0 px-3">
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th>Peça</th>
+                                <th class="text-center">Esperado</th>
+                                <th class="text-center">Encontrado</th>
+                                <th class="text-center">Diferença</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for d in c.detalhes %}
+                            <tr>
+                                <td class="small">{{ d.peca.nome if d.peca else '—' }}</td>
+                                <td class="text-center small">{{ d.quantidade_esperada_na_epoca }}</td>
+                                <td class="text-center small">{{ d.quantidade_encontrada }}</td>
+                                <td class="text-center">
+                                    {% set diff = d.quantidade_encontrada - d.quantidade_esperada_na_epoca %}
+                                    {% if diff == 0 %}
+                                    <span class="badge badge-status-completo">OK</span>
+                                    {% elif diff < 0 %}
+                                    <span class="badge badge-status-incompleto">{{ diff }}</span>
+                                    {% else %}
+                                    <span class="badge bg-info text-dark">+{{ diff }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5">
+    <i class="bi bi-clock-history text-muted" style="font-size:3rem"></i>
+    <p class="text-muted mt-2">Nenhuma conferência registrada ainda.</p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if labels %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    const ctx = document.getElementById('grafico').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ labels | tojson }},
+            datasets: [{
+                label: 'Saúde do Kit (%)',
+                data: {{ valores | tojson }},
+                borderColor: '#2563EB',
+                backgroundColor: 'rgba(37,99,235,0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.3,
+                pointBackgroundColor: '#2563EB',
+                pointRadius: 5,
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { min: 0, max: 100,
+                     ticks: { callback: v => v + '%' } }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => ctx.parsed.y + '%'
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

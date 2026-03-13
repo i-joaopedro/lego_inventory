@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+{% block title %}Scan QR Code{% endblock %}
+
+{% block extra_css %}
+<style>
+  #video-container {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #000;
+    aspect-ratio: 1;
+  }
+  #video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .scanner-overlay {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+  }
+  .scanner-frame {
+    width: 65%; height: 65%;
+    border: 3px solid #2563EB;
+    border-radius: 12px;
+    box-shadow: 0 0 0 2000px rgba(0,0,0,0.45);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { border-color: #2563EB; }
+    50%      { border-color: #7C3AED; }
+  }
+  .corner {
+    position: absolute;
+    width: 20px; height: 20px;
+    border-color: #fff;
+    border-style: solid;
+  }
+  .corner.tl { top: 17.5%; left: 17.5%; border-width: 3px 0 0 3px; }
+  .corner.tr { top: 17.5%; right: 17.5%; border-width: 3px 3px 0 0; }
+  .corner.bl { bottom: 17.5%; left: 17.5%; border-width: 0 0 3px 3px; }
+  .corner.br { bottom: 17.5%; right: 17.5%; border-width: 0 3px 3px 0; }
+  #resultado-area { animation: fadeIn .4s; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8 col-lg-6">
+    <div class="d-flex align-items-center mb-4 gap-3">
+      <a href="{{ url_for('conferencias_auxiliar') if session.get('user_role') == 'auxiliar' else url_for('dashboard') }}"
+         class="btn btn-light btn-sm"><i class="bi bi-arrow-left"></i></a>
+      <div>
+        <h3 class="fw-800 mb-0">Scan QR Code</h3>
+        <p class="text-muted small mb-0">Aponte para a etiqueta do kit</p>
+      </div>
+    </div>
+
+    {# CÂMERA #}
+    <div id="video-container" class="mb-3 shadow">
+      <video id="video" playsinline muted></video>
+      <div class="scanner-overlay">
+        <div class="scanner-frame"></div>
+        <div class="corner tl"></div><div class="corner tr"></div>
+        <div class="corner bl"></div><div class="corner br"></div>
+      </div>
+    </div>
+
+    {# STATUS #}
+    <div id="status-text" class="text-center text-muted small mb-3">
+      <i class="bi bi-camera me-1"></i>Aguardando câmera...
+    </div>
+
+    {# RESULTADO #}
+    <div id="resultado-area" class="d-none"></div>
+
+    {# MANUAL #}
+    <div class="card border-0 bg-light p-3 mt-3">
+      <p class="text-muted small mb-2 fw-semibold">Ou acesse manualmente:</p>
+      <div class="input-group">
+        <input type="number" id="kit-id-manual" class="form-control" placeholder="ID do kit (número)">
+        <button class="btn btn-primary fw-semibold" onclick="irManual()">
+          <i class="bi bi-arrow-right me-1"></i>Ir
+        </button>
+      </div>
+    </div>
+
+    {# CÂMERA SELECT #}
+    <div class="mt-3 text-center">
+      <button class="btn btn-outline-secondary btn-sm" id="btn-flip">
+        <i class="bi bi-camera-fill me-1"></i>Trocar câmera
+      </button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<script>
+const BASE_URL = window.location.origin;
+let stream = null, raf = null, cameras = [], camIdx = 0;
+
+async function startCamera(idx) {
+  if (stream) stream.getTracks().forEach(t => t.stop());
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    cameras = devices.filter(d => d.kind === 'videoinput');
+    if (!cameras.length) { setStatus('❌ Nenhuma câmera encontrada.'); return; }
+    camIdx = idx % cameras.length;
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { deviceId: cameras[camIdx].deviceId, facingMode: camIdx === 0 ? 'environment' : 'user' }
+    });
+    document.getElementById('video').srcObject = stream;
+    await document.getElementById('video').play();
+    setStatus('🔍 Escaneando...');
+    scan();
+  } catch(e) {
+    setStatus('❌ Sem permissão para câmera. Libere o acesso.');
+  }
+}
+
+function scan() {
+  const video = document.getElementById('video');
+  if (video.readyState !== video.HAVE_ENOUGH_DATA) { raf = requestAnimationFrame(scan); return; }
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0);
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
+  if (code) {
+    handleQR(code.data);
+  } else {
+    raf = requestAnimationFrame(scan);
+  }
+}
+
+function handleQR(data) {
+  if (stream) stream.getTracks().forEach(t => t.stop());
+  cancelAnimationFrame(raf);
+  setStatus('✅ QR Code lido!');
+
+  // Tenta extrair kit_id da URL /qr/NUMERO ou /conferir/NUMERO
+  const match = data.match(/\/(?:qr|conferir)\/(\d+)/);
+  if (match) {
+    const kitId = match[1];
+    mostrarResultado(kitId, data);
+  } else {
+    document.getElementById('resultado-area').innerHTML = `
+      <div class="alert alert-warning">
+        QR Code não reconhecido como kit LEGO Inventory.<br>
+        <small class="text-muted">Conteúdo: ${data}</small>
+      </div>`;
+    document.getElementById('resultado-area').classList.remove('d-none');
+    setTimeout(() => { document.getElementById('resultado-area').classList.add('d-none'); startCamera(camIdx); }, 3000);
+  }
+}
+
+async function mostrarResultado(kitId, rawUrl) {
+  const area = document.getElementById('resultado-area');
+  area.innerHTML = `<div class="text-center py-3"><div class="spinner-border text-primary"></div><p class="text-muted mt-2">Carregando kit...</p></div>`;
+  area.classList.remove('d-none');
+
+  try {
+    const res = await fetch(`/api/v1/kits/${kitId}`, { headers: { 'Authorization': 'Bearer INTERNAL' } });
+    // fallback: vai direto para a URL do QR
+  } catch(e) {}
+
+  area.innerHTML = `
+    <div class="card border-0 shadow p-4 text-center">
+      <i class="bi bi-check-circle-fill text-success mb-2" style="font-size:3rem"></i>
+      <h5 class="fw-800 mb-1">Kit ${kitId} encontrado!</h5>
+      <p class="text-muted small mb-3">Deseja iniciar a conferência?</p>
+      <div class="d-flex gap-2 justify-content-center">
+        <a href="/conferir/${kitId}" class="btn btn-primary btn-lg fw-bold px-4">
+          <i class="bi bi-search me-2"></i>Conferir Agora
+        </a>
+        <a href="/auxiliar/kit/${kitId}/historico" class="btn btn-outline-secondary">
+          <i class="bi bi-clock-history me-1"></i>Histórico
+        </a>
+      </div>
+      <button class="btn btn-link text-muted small mt-2" onclick="reiniciar()">Escanear outro</button>
+    </div>`;
+}
+
+function reiniciar() {
+  document.getElementById('resultado-area').classList.add('d-none');
+  document.getElementById('resultado-area').innerHTML = '';
+  startCamera(camIdx);
+}
+
+function setStatus(txt) { document.getElementById('status-text').innerHTML = `<span>${txt}</span>`; }
+
+function irManual() {
+  const id = document.getElementById('kit-id-manual').value.trim();
+  if (id) window.location.href = `/conferir/${id}`;
+}
+
+document.getElementById('btn-flip').onclick = () => startCamera(camIdx + 1);
+document.getElementById('kit-id-manual').addEventListener('keypress', e => { if(e.key === 'Enter') irManual(); });
+
+startCamera(0);
+</script>
+{% endblock %}

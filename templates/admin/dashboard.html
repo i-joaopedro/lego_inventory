@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — LEGO Inventory{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-800 mb-0">Painel de Controle</h2>
+        <p class="text-muted mb-0 small">Visão geral do inventário LEGO educacional</p>
+    </div>
+    {% if session.get('user_role') == 'admin' %}
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('novo_modelo') }}" class="btn btn-outline-primary btn-sm fw-semibold">
+            <i class="bi bi-plus-square me-1"></i>Novo Modelo
+        </a>
+        <a href="{{ url_for('nova_unidade') }}" class="btn btn-primary btn-sm fw-semibold">
+            <i class="bi bi-box-seam me-1"></i>Nova Unidade
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+{# ── MÉTRICAS ── #}
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card stat-card p-3">
+            <div class="text-muted small mb-1">Total de Kits</div>
+            <div class="fw-800 fs-3">{{ total }}</div>
+            <div class="small text-muted"><i class="bi bi-building me-1"></i>{{ escolas_distintas }} escolas</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card success p-3">
+            <div class="text-muted small mb-1">Completos</div>
+            <div class="fw-800 fs-3 text-success">{{ completos }}</div>
+            <div class="small text-muted">
+                {% if total > 0 %}{{ (completos / total * 100)|round(0)|int }}%{% else %}—{% endif %} do total
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card danger p-3">
+            <div class="text-muted small mb-1">Incompletos</div>
+            <div class="fw-800 fs-3 text-danger">{{ incompletos }}</div>
+            <div class="small text-muted">Precisam atenção</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card warning p-3">
+            <div class="text-muted small mb-1">Pendentes</div>
+            <div class="fw-800 fs-3 text-warning">{{ pendentes }}</div>
+            <div class="small text-muted">Sem conferência</div>
+        </div>
+    </div>
+</div>
+
+{# ── MODELOS ── #}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="fw-bold mb-0">Modelos de Kit</h5>
+    <a href="{{ url_for('listar_modelos') }}" class="btn btn-outline-secondary btn-sm">Ver todos</a>
+</div>
+<div class="row g-3 mb-5">
+    {% for m in modelos %}
+    <div class="col-xl-3 col-lg-4 col-md-6">
+        <div class="card h-100 p-3">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <img src="{{ url_for('static', filename='uploads/' + m.foto_capa) }}"
+                     class="rounded" style="width:56px;height:56px;object-fit:cover;"
+                     onerror="this.src='https://placehold.co/56x56?text=KIT'">
+                <div>
+                    <h6 class="fw-bold mb-0">{{ m.nome }}</h6>
+                    <span class="badge bg-light text-dark border small">{{ m.categoria or 'Sem categoria' }}</span>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between text-muted small mb-3">
+                <span><i class="bi bi-puzzle me-1"></i>{{ m.pecas_obrigatorias|length }} peças</span>
+                <span><i class="bi bi-box-seam me-1"></i>{{ m.unidades_reais|length }} unidades</span>
+            </div>
+            <div class="d-flex gap-2 mt-auto">
+                <a href="{{ url_for('gerenciar_composicao', modelo_id=m.id) }}"
+                   class="btn btn-sm btn-outline-primary flex-grow-1">
+                    <i class="bi bi-list-check"></i> Peças
+                </a>
+                {% if session.get('user_role') == 'admin' %}
+                <a href="{{ url_for('editar_modelo', mid=m.id) }}"
+                   class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-pencil"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center py-5">
+        <i class="bi bi-box text-muted" style="font-size:3rem"></i>
+        <p class="text-muted mt-2">Nenhum modelo cadastrado ainda.</p>
+        <a href="{{ url_for('novo_modelo') }}" class="btn btn-primary">Criar primeiro modelo</a>
+    </div>
+    {% endfor %}
+</div>
+
+{# ── ÚLTIMAS CONFERÊNCIAS ── #}
+<h5 class="fw-bold mb-3">Kits com Problemas Recentes</h5>
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="bg-light">
+                <tr>
+                    <th>Kit</th>
+                    <th>Escola</th>
+                    <th>Status</th>
+                    <th>Saúde</th>
+                    <th>Última Conf.</th>
+                    <th class="text-end">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in unidades if u.status_atual != 'Completo' %}
+                <tr>
+                    <td><span class="fw-semibold">{{ u.identificador }}</span>
+                        <small class="text-muted d-block">{{ u.modelo.nome }}</small></td>
+                    <td>{{ u.escola }}</td>
+                    <td>
+                        <span class="badge {% if u.status_atual == 'Completo' %}badge-status-completo
+                                          {% elif u.status_atual == 'Incompleto' %}badge-status-incompleto
+                                          {% else %}badge-status-pendente{% endif %}">
+                            {{ u.status_atual }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if u.saude_percentual is not none %}
+                            <div class="progress" style="height:6px;width:80px">
+                                <div class="progress-bar {% if u.saude_percentual >= 90 %}bg-success
+                                            {% elif u.saude_percentual >= 60 %}bg-warning
+                                            {% else %}bg-danger{% endif %}"
+                                     style="width:{{ u.saude_percentual }}%"></div>
+                            </div>
+                            <small class="text-muted">{{ u.saude_percentual }}%</small>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td class="small text-muted">
+                        {% if u.ultima_conferencia %}
+                            {{ u.ultima_conferencia.data_conferencia.strftime('%d/%m/%Y') }}
+                        {% else %}Pendente{% endif %}
+                    </td>
+                    <td class="text-end">
+                        <a href="{{ url_for('historico_kit', uid=u.id) }}"
+                           class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-clock-history"></i>
+                        </a>
+                        <a href="{{ url_for('conferir_kit', kit_id=u.id) }}"
+                           class="btn btn-sm btn-primary">
+                            <i class="bi bi-search"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center text-success py-4">
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        Todos os kits estão completos!
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

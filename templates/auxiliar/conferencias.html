@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+{% block title %}Conferências — {{ escola }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-800 mb-0">Central de Conferências</h2>
+        <p class="text-muted mb-0 small">
+            <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ escola }}
+        </p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('comparar_kits') }}" class="btn btn-outline-primary btn-sm fw-semibold">
+            <i class="bi bi-bar-chart-line me-1"></i>Comparar Kits
+        </a>
+        <div class="dropdown">
+          <button class="btn btn-primary btn-sm fw-semibold dropdown-toggle" data-bs-toggle="dropdown">
+            <i class="bi bi-file-earmark-pdf me-1"></i>Relatório
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+            <li><a class="dropdown-item"
+                   href="{{ url_for('relatorio_escola_view', nome_escola=escola, modo='completo') }}">
+              <i class="bi bi-list-check me-2 text-primary"></i>Ver relatório completo
+            </a></li>
+            <li><a class="dropdown-item"
+                   href="{{ url_for('relatorio_escola_view', nome_escola=escola, modo='faltantes') }}">
+              <i class="bi bi-exclamation-triangle me-2 text-danger"></i>Ver somente faltantes
+            </a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item"
+                   href="{{ url_for('relatorio_escola_pdf', nome_escola=escola, modo='completo') }}">
+              <i class="bi bi-file-earmark-pdf me-2 text-primary"></i>PDF completo
+            </a></li>
+            <li><a class="dropdown-item"
+                   href="{{ url_for('relatorio_escola_pdf', nome_escola=escola, modo='faltantes') }}">
+              <i class="bi bi-file-earmark-pdf me-2 text-danger"></i>PDF somente faltantes
+            </a></li>
+          </ul>
+        </div>
+    </div>
+</div>
+
+{# ── MÉTRICAS ── #}
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card stat-card p-3 text-center">
+            <div class="fw-800 fs-2">{{ total }}</div>
+            <div class="small text-muted">Total de Kits</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card success p-3 text-center">
+            <div class="fw-800 fs-2 text-success">{{ completos }}</div>
+            <div class="small text-muted">Completos</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card danger p-3 text-center">
+            <div class="fw-800 fs-2 text-danger">{{ incompletos }}</div>
+            <div class="small text-muted">Incompletos</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card warning p-3 text-center">
+            <div class="fw-800 fs-2 text-warning">{{ total_perdidas }}</div>
+            <div class="small text-muted">Peças faltando</div>
+        </div>
+    </div>
+</div>
+
+{# ── BARRA DE PROGRESSO GERAL ── #}
+{% if total > 0 %}
+<div class="card p-3 mb-4">
+    <div class="d-flex justify-content-between mb-2">
+        <span class="fw-semibold small">Progresso da Unidade</span>
+        <span class="small text-muted">{{ completos }}/{{ total }} kits completos</span>
+    </div>
+    <div class="progress" style="height:12px;border-radius:8px">
+        <div class="progress-bar bg-success"
+             style="width:{{ (completos/total*100)|round(0)|int }}%;border-radius:8px 0 0 8px"></div>
+        <div class="progress-bar bg-danger"
+             style="width:{{ (incompletos/total*100)|round(0)|int }}%"></div>
+        <div class="progress-bar bg-warning"
+             style="width:{{ (pendentes/total*100)|round(0)|int }}%;border-radius:0 8px 8px 0"></div>
+    </div>
+    <div class="d-flex gap-4 mt-2">
+        <small><span class="badge bg-success me-1">{{ (completos/total*100)|round(0)|int }}%</span>Completos</small>
+        <small><span class="badge bg-danger me-1">{{ (incompletos/total*100)|round(0)|int }}%</span>Incompletos</small>
+        <small><span class="badge bg-warning text-dark me-1">{{ (pendentes/total*100)|round(0)|int }}%</span>Pendentes</small>
+    </div>
+</div>
+{% endif %}
+
+{# ── GRADE DE KITS ── #}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="fw-bold mb-0">Kits da Unidade</h5>
+    <div class="input-group" style="max-width:240px">
+        <span class="input-group-text bg-white border-end-0">
+            <i class="bi bi-search text-muted small"></i>
+        </span>
+        <input type="text" id="buscaKit" class="form-control border-start-0 form-control-sm"
+               placeholder="Filtrar kits...">
+    </div>
+</div>
+
+<div class="row g-3" id="gridKits">
+    {% for u in unidades %}
+    <div class="col-md-6 col-lg-4 kit-card"
+         data-search="{{ u.identificador|lower }} {{ u.modelo.nome|lower }}">
+        <div class="card h-100 border-0 shadow-sm overflow-hidden">
+
+            {# Barra colorida de status no topo #}
+            <div class="{% if u.status_atual == 'Completo' %}bg-success
+                         {% elif u.status_atual == 'Incompleto' %}bg-danger
+                         {% else %}bg-warning{% endif %}"
+                 style="height:4px"></div>
+
+            <div class="card-body p-3">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <h6 class="fw-800 mb-0">{{ u.identificador }}</h6>
+                        <small class="text-primary fw-semibold">{{ u.modelo.nome }}</small>
+                    </div>
+                    <span class="badge {% if u.status_atual == 'Completo' %}badge-status-completo
+                                       {% elif u.status_atual == 'Incompleto' %}badge-status-incompleto
+                                       {% else %}badge-status-pendente{% endif %}">
+                        {{ u.status_atual }}
+                    </span>
+                </div>
+
+                {# Saúde do kit #}
+                {% if u.saude_percentual is not none %}
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between mb-1">
+                        <small class="text-muted">Saúde</small>
+                        <small class="fw-bold
+                            {% if u.saude_percentual >= 90 %}text-success
+                            {% elif u.saude_percentual >= 60 %}text-warning
+                            {% else %}text-danger{% endif %}">
+                            {{ u.saude_percentual }}%
+                        </small>
+                    </div>
+                    <div class="progress" style="height:5px">
+                        <div class="progress-bar
+                            {% if u.saude_percentual >= 90 %}bg-success
+                            {% elif u.saude_percentual >= 60 %}bg-warning
+                            {% else %}bg-danger{% endif %}"
+                             style="width:{{ u.saude_percentual }}%"></div>
+                    </div>
+                </div>
+
+                {# Peças faltando #}
+                {% set uc = u.ultima_conferencia %}
+                {% if uc %}
+                {% set perdidas = namespace(n=0) %}
+                {% for d in uc.detalhes %}
+                    {% if d.quantidade_encontrada < d.quantidade_esperada_na_epoca %}
+                        {% set perdidas.n = perdidas.n + (d.quantidade_esperada_na_epoca - d.quantidade_encontrada) %}
+                    {% endif %}
+                {% endfor %}
+                {% if perdidas.n > 0 %}
+                <div class="alert alert-danger py-1 px-2 mb-2 small d-flex align-items-center">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <span>{{ perdidas.n }} peça(s) faltando</span>
+                </div>
+                {% endif %}
+                {% endif %}
+                {% endif %}
+
+                {# Última conferência #}
+                <div class="text-muted small mb-3">
+                    <i class="bi bi-clock me-1"></i>
+                    {% if u.ultima_conferencia %}
+                        Última: {{ u.ultima_conferencia.data_conferencia.strftime('%d/%m/%Y') }}
+                        por {{ u.ultima_conferencia.responsavel }}
+                    {% else %}
+                        <span class="text-warning fw-semibold">Nunca conferido</span>
+                    {% endif %}
+                </div>
+
+                {# BOTÕES #}
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('conferir_kit', kit_id=u.id) }}"
+                       class="btn btn-primary btn-sm flex-grow-1 fw-bold">
+                        <i class="bi bi-search me-1"></i>Conferir
+                    </a>
+                    <a href="{{ url_for('historico_kit_auxiliar', kit_id=u.id) }}"
+                       class="btn btn-outline-secondary btn-sm" title="Histórico">
+                        <i class="bi bi-clock-history"></i>
+                    </a>
+                    <a href="{{ url_for('editar_unidade', uid=u.id) }}"
+                       class="btn btn-outline-secondary btn-sm" title="Editar unidade">
+                        <i class="bi bi-pencil-square"></i>
+                    </a>
+                    <div class="dropdown">
+                      <button class="btn btn-outline-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown" title="Relatório">
+                        <i class="bi bi-file-earmark-pdf"></i>
+                      </button>
+                      <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                        <li><a class="dropdown-item small"
+                               href="{{ url_for('relatorio_kit_view', kit_id=u.id, modo='completo') }}">
+                          <i class="bi bi-list-check me-2 text-primary"></i>Ver completo
+                        </a></li>
+                        <li><a class="dropdown-item small"
+                               href="{{ url_for('relatorio_kit_view', kit_id=u.id, modo='faltantes') }}">
+                          <i class="bi bi-exclamation-triangle me-2 text-danger"></i>Ver faltantes
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item small"
+                               href="{{ url_for('relatorio_kit_pdf', kit_id=u.id, modo='completo') }}">
+                          <i class="bi bi-file-earmark-pdf me-2 text-primary"></i>PDF completo
+                        </a></li>
+                        <li><a class="dropdown-item small"
+                               href="{{ url_for('relatorio_kit_pdf', kit_id=u.id, modo='faltantes') }}">
+                          <i class="bi bi-file-earmark-pdf me-2 text-danger"></i>PDF faltantes
+                        </a></li>
+                      </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center py-5">
+        <i class="bi bi-inbox text-muted" style="font-size:3rem"></i>
+        <p class="text-muted mt-2">Nenhum kit vinculado à sua escola.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('buscaKit').addEventListener('input', function () {
+    const termo = this.value.toLowerCase();
+    document.querySelectorAll('.kit-card').forEach(el => {
+        el.style.display = el.dataset.search.includes(termo) ? '' : 'none';
+    });
+});
+</script>
+{% endblock %}

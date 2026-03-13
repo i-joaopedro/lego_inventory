@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Editar' if modelo else 'Novo' }} Modelo de Kit{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="d-flex align-items-center mb-4">
+            <a href="{{ destino_voltar or url_for('listar_modelos') }}" class="btn btn-light btn-sm me-3">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <h3 class="fw-800 mb-0">
+                {{ 'Editar Modelo' if modelo else 'Novo Modelo de Kit' }}
+            </h3>
+        </div>
+
+        <div class="card shadow-sm border-0 p-4">
+            <form method="POST"
+                  action="{{ url_for('editar_modelo', mid=modelo.id) if modelo else url_for('novo_modelo') }}"
+                  enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Nome do Modelo</label>
+                    <input type="text" name="nome" class="form-control form-control-lg"
+                           value="{{ modelo.nome if modelo else '' }}"
+                           placeholder="Ex: Spike Prime, BricQ Motion..." required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Categoria / Nível</label>
+                    <select name="categoria" class="form-select">
+                        {% for cat in ['Fundamental I', 'Fundamental II', 'Ensino Médio', 'Competição', 'Outro'] %}
+                        <option value="{{ cat }}"
+                            {% if modelo and modelo.categoria == cat %}selected{% endif %}>
+                            {{ cat }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">
+                        Foto de Capa {{ '(deixe em branco para manter)' if modelo else '' }}
+                    </label>
+                    {% if modelo and modelo.foto_capa != 'kit-default.png' %}
+                    <div class="mb-2">
+                        <img src="{{ url_for('static', filename='uploads/' + modelo.foto_capa) }}"
+                             class="rounded" style="height:80px;object-fit:cover;">
+                    </div>
+                    {% endif %}
+                    <input type="file" name="foto" class="form-control" accept=".png,.jpg,.jpeg,.webp">
+                    <div class="form-text">Formatos: PNG, JPG ou JPEG · máx. 5 MB.</div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <a href="{{ destino_voltar or url_for('listar_modelos') }}" class="btn btn-light flex-grow-1">Cancelar</a>
+                    <button type="submit" class="btn btn-primary flex-grow-1 fw-bold">
+                        {{ 'Salvar' if modelo else 'Criar Modelo' }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

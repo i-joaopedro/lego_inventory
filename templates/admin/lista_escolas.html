@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% block title %}Escolas{% endblock %}
+
+{% block content %}
+{% set is_admin = session.get('user_role') == 'admin' %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="fw-800 mb-0">Escolas</h2>
+    <p class="text-muted small mb-0">Gestão de unidades escolares e seus kits</p>
+  </div>
+  {% if is_admin %}
+  <a href="{{ url_for('nova_escola') }}" class="btn btn-primary btn-sm fw-semibold">
+    <i class="bi bi-plus me-1"></i>Nova Escola
+  </a>
+  {% endif %}
+</div>
+
+{% if escolas_obj %}
+<div class="row g-3">
+  {% for escola in escolas_obj %}
+  {% set st = stats.get(escola.nome, {'total': 0, 'completos': 0}) %}
+  {% set saude = escola.saude_media %}
+  <div class="col-md-6 col-lg-4">
+    <div class="card h-100 border-0 shadow-sm overflow-hidden {% if not escola.ativo %}opacity-50{% endif %}">
+      <div class="{% if saude is none %}bg-secondary{% elif saude >= 85 %}bg-success{% elif saude >= 60 %}bg-warning{% else %}bg-danger{% endif %}" style="height:5px"></div>
+      <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div>
+            <h5 class="fw-800 mb-1">{{ escola.nome }}</h5>
+            {% if escola.cidade %}
+            <small class="text-muted"><i class="bi bi-geo-alt me-1"></i>{{ escola.cidade }}</small>
+            {% endif %}
+          </div>
+          <div class="text-end">
+            {% if saude is not none %}
+            <span class="badge {% if saude >= 85 %}bg-success{% elif saude >= 60 %}bg-warning text-dark{% else %}bg-danger{% endif %} fs-6 fw-bold">
+              {{ saude }}%
+            </span>
+            {% else %}
+            <span class="badge bg-secondary">Sem dados</span>
+            {% endif %}
+            {% if not escola.ativo %}
+            <span class="badge bg-secondary d-block mt-1">Inativa</span>
+            {% endif %}
+          </div>
+        </div>
+
+        {# Stats kits #}
+        <div class="row g-2 mb-3">
+          <div class="col-4 text-center">
+            <div class="fw-bold fs-5">{{ st.total }}</div>
+            <small class="text-muted">Total</small>
+          </div>
+          <div class="col-4 text-center">
+            <div class="fw-bold fs-5 text-success">{{ st.completos }}</div>
+            <small class="text-muted">Completos</small>
+          </div>
+          <div class="col-4 text-center">
+            <div class="fw-bold fs-5 text-danger">{{ st.total - st.completos }}</div>
+            <small class="text-muted">Problemas</small>
+          </div>
+        </div>
+
+        {% if st.total > 0 %}
+        <div class="progress mb-3" style="height:6px;border-radius:8px">
+          <div class="progress-bar {% if saude is not none and saude >= 85 %}bg-success{% elif saude is not none and saude >= 60 %}bg-warning{% else %}bg-danger{% endif %}"
+               style="width:{{ (st.completos/st.total*100)|round(0)|int }}%"></div>
+        </div>
+        {% endif %}
+
+        {% if escola.responsavel %}
+        <small class="text-muted d-block mb-1">
+          <i class="bi bi-person me-1"></i>{{ escola.responsavel }}
+        </small>
+        {% endif %}
+        {% if escola.telefone %}
+        <small class="text-muted d-block mb-3">
+          <i class="bi bi-telephone me-1"></i>{{ escola.telefone }}
+        </small>
+        {% endif %}
+
+        <div class="d-flex gap-2">
+          <a href="{{ url_for('detalhe_escola', nome_escola=escola.nome) }}"
+             class="btn btn-primary btn-sm flex-grow-1 fw-semibold">
+            <i class="bi bi-eye me-1"></i>Ver Kits
+          </a>
+          {% if is_admin %}
+          <a href="{{ url_for('editar_escola', eid=escola.id) }}"
+             class="btn btn-outline-secondary btn-sm" title="Editar">
+            <i class="bi bi-pencil"></i>
+          </a>
+          <form method="POST" action="{{ url_for('deletar_escola', eid=escola.id) }}"
+                onsubmit="return confirm('Tem certeza? Isso remove a escola do cadastro.')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-outline-danger btn-sm" title="Deletar">
+              <i class="bi bi-trash"></i>
+            </button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5">
+  <i class="bi bi-building text-muted" style="font-size:4rem"></i>
+  <h4 class="text-muted mt-3">Nenhuma escola cadastrada</h4>
+  {% if is_admin %}
+  <a href="{{ url_for('nova_escola') }}" class="btn btn-primary mt-2">
+    <i class="bi bi-plus me-2"></i>Cadastrar Primeira Escola
+  </a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block title %}{% if unidade %}Editar Unidade{% else %}Nova Unidade{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8 col-lg-6">
+    <div class="d-flex align-items-center mb-4 gap-3">
+      <a href="{{ destino_voltar or url_for('listar_unidades') }}" class="btn btn-light btn-sm">
+        <i class="bi bi-arrow-left"></i>
+      </a>
+      <div>
+        <h3 class="fw-800 mb-0">{% if unidade %}Editar Unidade{% else %}Nova Unidade de Kit{% endif %}</h3>
+        <p class="text-muted small mb-0">{% if unidade %}{{ unidade.identificador }}{% else %}Cadastrar uma unidade física de kit{% endif %}</p>
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm p-4">
+      <form method="POST" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Identificador <span class="text-danger">*</span></label>
+          <input type="text" name="identificador" class="form-control"
+                 value="{{ unidade.identificador if unidade else '' }}"
+                 placeholder="Ex: SPIKE Essential — 01" required autofocus>
+          <small class="text-muted">Nome único que identifica esta unidade física.</small>
+        </div>
+
+        {# Auxiliar não pode mudar escola da unidade #}
+        {% if is_auxiliar %}
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Escola</label>
+          <input type="text" class="form-control" value="{{ unidade.escola }}" disabled>
+          <small class="text-muted">A escola desta unidade não pode ser alterada pelo auxiliar.</small>
+        </div>
+        {% else %}
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Escola <span class="text-danger">*</span></label>
+          <select name="escola" class="form-select" required>
+            <option value="">Selecione uma escola...</option>
+            {% for e in escolas_lista %}
+            <option value="{{ e.nome }}"
+              {% if unidade and unidade.escola == e.nome %}selected{% endif %}>
+              {{ e.nome }}{% if e.cidade %} — {{ e.cidade }}{% endif %}
+            </option>
+            {% endfor %}
+          </select>
+          {% if not escolas_lista %}
+          <div class="alert alert-warning mt-2 py-1 px-2 small">
+            <i class="bi bi-exclamation-triangle me-1"></i>
+            Nenhuma escola cadastrada.
+            <a href="{{ url_for('nova_escola') }}" class="fw-bold">Cadastre uma escola primeiro.</a>
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="mb-4">
+          <label class="form-label fw-semibold">Modelo de Kit <span class="text-danger">*</span></label>
+          <select name="modelo_id" class="form-select" required>
+            <option value="">Selecione um modelo...</option>
+            {% for m in modelos %}
+            <option value="{{ m.id }}"
+              {% if unidade and unidade.kit_modelo_id == m.id %}selected{% endif %}>
+              {{ m.nome }}{% if m.categoria %} ({{ m.categoria }}){% endif %}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary flex-grow-1 fw-bold">
+            <i class="bi bi-check-lg me-2"></i>{% if unidade %}Salvar Alterações{% else %}Cadastrar Unidade{% endif %}
+          </button>
+          <a href="{{ destino_voltar or url_for('listar_unidades') }}" class="btn btn-outline-secondary">Cancelar</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

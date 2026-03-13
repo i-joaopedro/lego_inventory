@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Modelos de Kit{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-800 mb-0">Modelos de Kit</h2>
+    {% if session.get('user_role') == 'admin' %}
+    <a href="{{ url_for('novo_modelo') }}" class="btn btn-primary btn-sm fw-semibold">
+        <i class="bi bi-plus me-1"></i>Novo Modelo
+    </a>
+    {% endif %}
+</div>
+<div class="row g-3">
+    {% for m in modelos %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 p-3">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <img src="{{ url_for('static', filename='uploads/' + m.foto_capa) }}"
+                     class="rounded" style="width:56px;height:56px;object-fit:cover;"
+                     onerror="this.src='https://placehold.co/56x56?text=KIT'">
+                <div>
+                    <h6 class="fw-bold mb-0">{{ m.nome }}</h6>
+                    <span class="badge bg-light text-dark border small">{{ m.categoria or '—' }}</span>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between text-muted small mb-3">
+                <span><i class="bi bi-puzzle me-1"></i>{{ m.pecas_obrigatorias|length }} peças</span>
+                <span><i class="bi bi-box-seam me-1"></i>{{ m.unidades_reais|length }} unidades</span>
+            </div>
+            <div class="d-flex gap-2 mt-auto">
+                <a href="{{ url_for('gerenciar_composicao', modelo_id=m.id) }}"
+                   class="btn btn-sm btn-outline-primary flex-grow-1">
+                    <i class="bi bi-list-check me-1"></i>Composição
+                </a>
+                {% if session.get('user_role') == 'admin' %}
+                <a href="{{ url_for('editar_modelo', mid=m.id) }}"
+                   class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-pencil"></i>
+                </a>
+                <form method="POST" action="{{ url_for('deletar_modelo', mid=m.id) }}"
+                      class="d-inline"
+                      onsubmit="return confirm('Deletar modelo {{ m.nome }}?')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center py-5">
+        <p class="text-muted">Nenhum modelo cadastrado.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
