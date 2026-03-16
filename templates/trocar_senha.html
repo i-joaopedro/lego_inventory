@@ -1,54 +1,71 @@
-{% extends 'base.html' %}
-{% block title %}Trocar Senha{% endblock %}
-{% block content %}
+{% extends 'base.html' %} {% block title %}Trocar Senha{% endblock %} {% block
+content %}
 <div class="row justify-content-center">
-    <div class="col-md-5">
-        <div class="d-flex align-items-center mb-4">
-            <a href="{{ url_for('index') }}" class="btn btn-light btn-sm me-3">
-                <i class="bi bi-arrow-left"></i>
-            </a>
-            <h3 class="fw-800 mb-0">Trocar Senha</h3>
-        </div>
-        <div class="card shadow-sm border-0 p-4">
-            <form method="POST">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Senha Atual</label>
-                    <input type="password" name="senha_atual" class="form-control" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Nova Senha</label>
-                    <input type="password" name="nova_senha" id="nova"
-                           class="form-control" minlength="6" required>
-                </div>
-                <div class="mb-4">
-                    <label class="form-label fw-semibold">Confirmar Nova Senha</label>
-                    <input type="password" name="confirmacao" id="conf"
-                           class="form-control" minlength="6" required>
-                    <div class="form-text" id="matchMsg"></div>
-                </div>
-                <button type="submit" class="btn btn-primary w-100 fw-bold">
-                    <i class="bi bi-key me-2"></i>Salvar Nova Senha
-                </button>
-            </form>
-        </div>
+  <div class="col-md-5">
+    <div class="d-flex align-items-center mb-4">
+      <a href="{{ url_for('index') }}" class="btn btn-light btn-sm me-3">
+        <i class="bi bi-arrow-left"></i>
+      </a>
+      <h3 class="fw-800 mb-0">Trocar Senha</h3>
     </div>
+    <div class="card shadow-sm border-0 p-4">
+      <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Senha Atual</label>
+          <input
+            type="password"
+            name="senha_atual"
+            class="form-control"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Nova Senha</label>
+          <input
+            type="password"
+            name="nova_senha"
+            id="nova"
+            class="form-control"
+            minlength="6"
+            required
+          />
+        </div>
+        <div class="mb-4">
+          <label class="form-label fw-semibold">Confirmar Nova Senha</label>
+          <input
+            type="password"
+            name="confirmacao"
+            id="conf"
+            class="form-control"
+            minlength="6"
+            required
+          />
+          <div class="form-text" id="matchMsg"></div>
+        </div>
+        <button type="submit" class="btn btn-primary w-100 fw-bold">
+          <i class="bi bi-key me-2"></i>Salvar Nova Senha
+        </button>
+      </form>
+    </div>
+  </div>
 </div>
-{% endblock %}
-{% block extra_js %}
+{% endblock %} {% block extra_js %}
 <script>
-function checkMatch() {
-    const msg = document.getElementById('matchMsg');
-    if (document.getElementById('nova').value ===
-        document.getElementById('conf').value) {
-        msg.textContent = '✓ Senhas coincidem';
-        msg.className = 'form-text text-success';
+  function checkMatch() {
+    const msg = document.getElementById("matchMsg");
+    if (
+      document.getElementById("nova").value ===
+      document.getElementById("conf").value
+    ) {
+      msg.textContent = "✓ Senhas coincidem";
+      msg.className = "form-text text-success";
     } else {
-        msg.textContent = '✗ Senhas não coincidem';
-        msg.className = 'form-text text-danger';
+      msg.textContent = "✗ Senhas não coincidem";
+      msg.className = "form-text text-danger";
     }
-}
-document.getElementById('conf').addEventListener('input', checkMatch);
-document.getElementById('nova').addEventListener('input', checkMatch);
+  }
+  document.getElementById("conf").addEventListener("input", checkMatch);
+  document.getElementById("nova").addEventListener("input", checkMatch);
 </script>
 {% endblock %}

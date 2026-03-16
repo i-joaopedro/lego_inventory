@@ -1,186 +1,248 @@
-{% extends 'base.html' %}
-{% block title %}Painel do Auxiliar{% endblock %}
-
-{% block content %}
+{% extends 'base.html' %} {% block title %}Painel do Auxiliar{% endblock %} {%
+block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h2 class="fw-800 mb-0">Painel da Unidade</h2>
-        <p class="text-muted mb-0">
-            <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ escola }}
-        </p>
-    </div>
-    <div class="badge bg-primary p-2 px-3 fs-6">
-        {{ unidades|length }} kit(s) sob sua responsabilidade
-    </div>
+  <div>
+    <h2 class="fw-800 mb-0">Painel da Unidade</h2>
+    <p class="text-muted mb-0">
+      <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ escola }}
+    </p>
+  </div>
+  <div class="badge bg-primary p-2 px-3 fs-6">
+    {{ unidades|length }} kit(s) sob sua responsabilidade
+  </div>
 </div>
 
 {# MÉTRICAS #}
 <div class="row g-3 mb-4">
-    <div class="col-6">
-        <div class="card stat-card success p-3 text-center">
-            <div class="fw-800 fs-2 text-success">{{ completos }}</div>
-            <div class="small text-muted"><i class="bi bi-check-circle me-1"></i>Completos</div>
-        </div>
+  <div class="col-6">
+    <div class="card stat-card success p-3 text-center">
+      <div class="fw-800 fs-2 text-success">{{ completos }}</div>
+      <div class="small text-muted">
+        <i class="bi bi-check-circle me-1"></i>Completos
+      </div>
     </div>
-    <div class="col-6">
-        <div class="card stat-card danger p-3 text-center">
-            <div class="fw-800 fs-2 text-danger">{{ incompletos }}</div>
-            <div class="small text-muted"><i class="bi bi-exclamation-triangle me-1"></i>Atenção</div>
-        </div>
+  </div>
+  <div class="col-6">
+    <div class="card stat-card danger p-3 text-center">
+      <div class="fw-800 fs-2 text-danger">{{ incompletos }}</div>
+      <div class="small text-muted">
+        <i class="bi bi-exclamation-triangle me-1"></i>Atenção
+      </div>
     </div>
+  </div>
 </div>
 
 {# AÇÕES RÁPIDAS #}
 <div class="row g-3 mb-4">
-    <div class="col-md-4">
-        <div class="card p-3 bg-primary text-white border-0 h-100">
-            <h6 class="fw-bold mb-2"><i class="bi bi-clipboard-check me-2"></i>Central de Conferências</h6>
-            <p class="small opacity-75 mb-3">Confira todos os kits, veja histórico e gere relatórios individuais.</p>
-            <a href="{{ url_for('conferencias_auxiliar') }}" class="btn btn-light btn-sm fw-bold mt-auto">
-                Acessar Central
-            </a>
-        </div>
+  <div class="col-md-4">
+    <div class="card p-3 bg-primary text-white border-0 h-100">
+      <h6 class="fw-bold mb-2">
+        <i class="bi bi-clipboard-check me-2"></i>Central de Conferências
+      </h6>
+      <p class="small opacity-75 mb-3">
+        Confira todos os kits, veja histórico e gere relatórios individuais.
+      </p>
+      <a
+        href="{{ url_for('conferencias_auxiliar') }}"
+        class="btn btn-light btn-sm fw-bold mt-auto"
+      >
+        Acessar Central
+      </a>
     </div>
-    <div class="col-md-4">
-        <div class="card p-3 bg-dark text-white border-0 h-100">
-            <h6 class="fw-bold mb-2"><i class="bi bi-bar-chart-line me-2"></i>Comparar Kits</h6>
-            <p class="small opacity-75 mb-3">Analise a perda de peças e compare a evolução dos kits ao longo do tempo.</p>
-            <a href="{{ url_for('comparar_kits') }}" class="btn btn-light btn-sm fw-bold mt-auto">
-                Ver Comparativo
-            </a>
-        </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card p-3 bg-dark text-white border-0 h-100">
+      <h6 class="fw-bold mb-2">
+        <i class="bi bi-bar-chart-line me-2"></i>Comparar Kits
+      </h6>
+      <p class="small opacity-75 mb-3">
+        Analise a perda de peças e compare a evolução dos kits ao longo do
+        tempo.
+      </p>
+      <a
+        href="{{ url_for('comparar_kits') }}"
+        class="btn btn-light btn-sm fw-bold mt-auto"
+      >
+        Ver Comparativo
+      </a>
     </div>
-    <div class="col-md-4">
-        <div class="card p-3 border-0 h-100" style="background:#F1F5F9">
-            <h6 class="fw-bold mb-2"><i class="bi bi-file-earmark-pdf me-2"></i>Relatórios PDF</h6>
-            <p class="small text-muted mb-3">Exporte relatório dos kits da sua unidade.</p>
-            <div class="d-flex flex-wrap gap-2 mt-auto">
-                <a href="{{ url_for('relatorio_escola_pdf', nome_escola=escola, modo='completo') }}"
-                   class="btn btn-outline-primary btn-sm fw-bold flex-grow-1">
-                    <i class="bi bi-list-check me-1"></i>PDF Completo
-                </a>
-                <a href="{{ url_for('relatorio_escola_pdf', nome_escola=escola, modo='faltantes') }}"
-                   class="btn btn-outline-danger btn-sm fw-bold flex-grow-1">
-                    <i class="bi bi-exclamation-triangle me-1"></i>PDF Faltantes
-                </a>
-                <a href="{{ url_for('etiquetas_auxiliar') }}" class="btn btn-outline-secondary btn-sm fw-bold flex-grow-1">
-                    <i class="bi bi-qr-code me-1"></i>QR Codes
-                </a>
-            </div>
-        </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card p-3 border-0 h-100" style="background: #f1f5f9">
+      <h6 class="fw-bold mb-2">
+        <i class="bi bi-file-earmark-pdf me-2"></i>Relatórios PDF
+      </h6>
+      <p class="small text-muted mb-3">
+        Exporte relatório dos kits da sua unidade.
+      </p>
+      <div class="d-flex flex-wrap gap-2 mt-auto">
+        <a
+          href="{{ url_for('relatorio_escola_pdf', nome_escola=escola, modo='completo') }}"
+          class="btn btn-outline-primary btn-sm fw-bold flex-grow-1"
+        >
+          <i class="bi bi-list-check me-1"></i>PDF Completo
+        </a>
+        <a
+          href="{{ url_for('relatorio_escola_pdf', nome_escola=escola, modo='faltantes') }}"
+          class="btn btn-outline-danger btn-sm fw-bold flex-grow-1"
+        >
+          <i class="bi bi-exclamation-triangle me-1"></i>PDF Faltantes
+        </a>
+        <a
+          href="{{ url_for('etiquetas_auxiliar') }}"
+          class="btn btn-outline-secondary btn-sm fw-bold flex-grow-1"
+        >
+          <i class="bi bi-qr-code me-1"></i>QR Codes
+        </a>
+      </div>
     </div>
+  </div>
 </div>
 
-{# GERENCIAMENTO RÁPIDO (permissões expandidas) #}
-{% if modelos_editaveis %}
+{# GERENCIAMENTO RÁPIDO (permissões expandidas) #} {% if modelos_editaveis %}
 <div class="row g-3 mb-4">
-    <div class="col-12">
-        <div class="card border-0 p-3" style="background:#FFF8E1">
-            <h6 class="fw-bold mb-3"><i class="bi bi-box-seam me-2 text-warning"></i>Modelos de Kit que você pode editar</h6>
-            <div class="d-flex flex-wrap gap-2">
-                {% for m in modelos_editaveis %}
-                <a href="{{ url_for('editar_modelo', mid=m.id) }}"
-                   class="btn btn-outline-warning btn-sm fw-semibold">
-                    <i class="bi bi-pencil me-1"></i>{{ m.nome }}
-                </a>
-                {% endfor %}
-            </div>
-        </div>
+  <div class="col-12">
+    <div class="card border-0 p-3" style="background: #fff8e1">
+      <h6 class="fw-bold mb-3">
+        <i class="bi bi-box-seam me-2 text-warning"></i>Modelos de Kit que você
+        pode editar
+      </h6>
+      <div class="d-flex flex-wrap gap-2">
+        {% for m in modelos_editaveis %}
+        <a
+          href="{{ url_for('editar_modelo', mid=m.id) }}"
+          class="btn btn-outline-warning btn-sm fw-semibold"
+        >
+          <i class="bi bi-pencil me-1"></i>{{ m.nome }}
+        </a>
+        {% endfor %}
+      </div>
     </div>
+  </div>
 </div>
-{% endif %}
-
-{# LISTA DE KITS #}
+{% endif %} {# LISTA DE KITS #}
 <h5 class="fw-bold mb-3">Seus Kits LEGO</h5>
 <div class="row g-3">
-    {% for u in unidades %}
-    <div class="col-md-6 col-lg-4">
-        <div class="card p-3 h-100">
-            <div class="d-flex justify-content-between align-items-start mb-2">
-                <div>
-                    <h6 class="fw-bold mb-0">{{ u.identificador }}</h6>
-                    <small class="text-primary fw-semibold">{{ u.modelo.nome }}</small>
-                </div>
-                <span class="badge {% if u.status_atual == 'Completo' %}badge-status-completo
-                                   {% elif u.status_atual == 'Incompleto' %}badge-status-incompleto
-                                   {% else %}badge-status-pendente{% endif %}">
-                    {{ u.status_atual }}
-                </span>
-            </div>
-
-            {% if u.saude_percentual is not none %}
-            <div class="mb-2">
-                <div class="d-flex justify-content-between mb-1">
-                    <small class="text-muted">Saúde do kit</small>
-                    <small class="fw-semibold">{{ u.saude_percentual }}%</small>
-                </div>
-                <div class="progress" style="height:6px">
-                    <div class="progress-bar {% if u.saude_percentual >= 90 %}bg-success
-                                             {% elif u.saude_percentual >= 60 %}bg-warning
-                                             {% else %}bg-danger{% endif %}"
-                         style="width:{{ u.saude_percentual }}%"></div>
-                </div>
-            </div>
-            {% endif %}
-
-            <div class="mt-auto pt-2">
-                {% if u.ultima_conferencia %}
-                <small class="text-muted d-block mb-2">
-                    <i class="bi bi-clock me-1"></i>
-                    Última conf.: {{ u.ultima_conferencia.data_conferencia.strftime('%d/%m/%Y') }}
-                </small>
-                {% else %}
-                <small class="text-warning fw-semibold d-block mb-2">
-                    <i class="bi bi-exclamation-circle me-1"></i>Pendente de conferência
-                </small>
-                {% endif %}
-
-                <div class="d-flex gap-2">
-                    <a href="{{ url_for('conferir_kit', kit_id=u.id) }}"
-                       class="btn btn-primary btn-sm flex-grow-1 fw-bold">
-                        <i class="bi bi-search me-1"></i>Conferir
-                    </a>
-                    <a href="{{ url_for('historico_kit_auxiliar', kit_id=u.id) }}"
-                       class="btn btn-outline-secondary btn-sm" title="Histórico">
-                        <i class="bi bi-clock-history"></i>
-                    </a>
-                    <a href="{{ url_for('editar_unidade', uid=u.id) }}"
-                       class="btn btn-outline-secondary btn-sm" title="Editar unidade">
-                        <i class="bi bi-pencil-square"></i>
-                    </a>
-                    <div class="dropdown">
-                      <button class="btn btn-outline-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown" title="Relatório">
-                        <i class="bi bi-file-earmark-pdf"></i>
-                      </button>
-                      <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                        <li><a class="dropdown-item small"
-                               href="{{ url_for('relatorio_kit_view', kit_id=u.id, modo='completo') }}">
-                          <i class="bi bi-list-check me-2 text-primary"></i>Ver completo
-                        </a></li>
-                        <li><a class="dropdown-item small"
-                               href="{{ url_for('relatorio_kit_view', kit_id=u.id, modo='faltantes') }}">
-                          <i class="bi bi-exclamation-triangle me-2 text-danger"></i>Ver faltantes
-                        </a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item small"
-                               href="{{ url_for('relatorio_kit_pdf', kit_id=u.id, modo='completo') }}">
-                          <i class="bi bi-file-earmark-pdf me-2 text-primary"></i>PDF completo
-                        </a></li>
-                        <li><a class="dropdown-item small"
-                               href="{{ url_for('relatorio_kit_pdf', kit_id=u.id, modo='faltantes') }}">
-                          <i class="bi bi-file-earmark-pdf me-2 text-danger"></i>PDF faltantes
-                        </a></li>
-                      </ul>
-                    </div>
-                </div>
-            </div>
+  {% for u in unidades %}
+  <div class="col-md-6 col-lg-4">
+    <div class="card p-3 h-100">
+      <div class="d-flex justify-content-between align-items-start mb-2">
+        <div>
+          <h6 class="fw-bold mb-0">{{ u.identificador }}</h6>
+          <small class="text-primary fw-semibold">{{ u.modelo.nome }}</small>
         </div>
+        <span
+          class="badge {% if u.status_atual == 'Completo' %}badge-status-completo {% elif u.status_atual == 'Incompleto' %}badge-status-incompleto {% else %}badge-status-pendente{% endif %}"
+        >
+          {{ u.status_atual }}
+        </span>
+      </div>
+
+      {% if u.saude_percentual is not none %}
+      <div class="mb-2">
+        <div class="d-flex justify-content-between mb-1">
+          <small class="text-muted">Saúde do kit</small>
+          <small class="fw-semibold">{{ u.saude_percentual }}%</small>
+        </div>
+        <div class="progress" style="height: 6px">
+          <div
+            class="progress-bar {% if u.saude_percentual >= 90 %}bg-success {% elif u.saude_percentual >= 60 %}bg-warning {% else %}bg-danger{% endif %}"
+            style="width:{{ u.saude_percentual }}%"
+          ></div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="mt-auto pt-2">
+        {% if u.ultima_conferencia %}
+        <small class="text-muted d-block mb-2">
+          <i class="bi bi-clock me-1"></i>
+          Última conf.: {{
+          u.ultima_conferencia.data_conferencia.strftime('%d/%m/%Y') }}
+        </small>
+        {% else %}
+        <small class="text-warning fw-semibold d-block mb-2">
+          <i class="bi bi-exclamation-circle me-1"></i>Pendente de conferência
+        </small>
+        {% endif %}
+
+        <div class="d-flex gap-2">
+          <a
+            href="{{ url_for('conferir_kit', kit_id=u.id) }}"
+            class="btn btn-primary btn-sm flex-grow-1 fw-bold"
+          >
+            <i class="bi bi-search me-1"></i>Conferir
+          </a>
+          <a
+            href="{{ url_for('historico_kit_auxiliar', kit_id=u.id) }}"
+            class="btn btn-outline-secondary btn-sm"
+            title="Histórico"
+          >
+            <i class="bi bi-clock-history"></i>
+          </a>
+          <a
+            href="{{ url_for('editar_unidade', uid=u.id) }}"
+            class="btn btn-outline-secondary btn-sm"
+            title="Editar unidade"
+          >
+            <i class="bi bi-pencil-square"></i>
+          </a>
+          <div class="dropdown">
+            <button
+              class="btn btn-outline-secondary btn-sm dropdown-toggle"
+              data-bs-toggle="dropdown"
+              title="Relatório"
+            >
+              <i class="bi bi-file-earmark-pdf"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+              <li>
+                <a
+                  class="dropdown-item small"
+                  href="{{ url_for('relatorio_kit_view', kit_id=u.id, modo='completo') }}"
+                >
+                  <i class="bi bi-list-check me-2 text-primary"></i>Ver completo
+                </a>
+              </li>
+              <li>
+                <a
+                  class="dropdown-item small"
+                  href="{{ url_for('relatorio_kit_view', kit_id=u.id, modo='faltantes') }}"
+                >
+                  <i class="bi bi-exclamation-triangle me-2 text-danger"></i>Ver
+                  faltantes
+                </a>
+              </li>
+              <li><hr class="dropdown-divider" /></li>
+              <li>
+                <a
+                  class="dropdown-item small"
+                  href="{{ url_for('relatorio_kit_pdf', kit_id=u.id, modo='completo') }}"
+                >
+                  <i class="bi bi-file-earmark-pdf me-2 text-primary"></i>PDF
+                  completo
+                </a>
+              </li>
+              <li>
+                <a
+                  class="dropdown-item small"
+                  href="{{ url_for('relatorio_kit_pdf', kit_id=u.id, modo='faltantes') }}"
+                >
+                  <i class="bi bi-file-earmark-pdf me-2 text-danger"></i>PDF
+                  faltantes
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
-    {% else %}
-    <div class="col-12 text-center py-5">
-        <i class="bi bi-inbox text-muted" style="font-size:3rem"></i>
-        <p class="text-muted mt-2">Nenhum kit vinculado à sua escola.</p>
-    </div>
-    {% endfor %}
+  </div>
+  {% else %}
+  <div class="col-12 text-center py-5">
+    <i class="bi bi-inbox text-muted" style="font-size: 3rem"></i>
+    <p class="text-muted mt-2">Nenhum kit vinculado à sua escola.</p>
+  </div>
+  {% endfor %}
 </div>
 {% endblock %}

@@ -195,14 +195,12 @@ def usuario_atual():
 
 
 def escolas_do_usuario(user):
-    """Retorna lista de escolas acessíveis, ou None para acesso total."""
     if not user or user.escola in (None, '', 'Todas'):
         return None
     return [e.strip() for e in user.escola.split(',')]
 
 
 def _calcular_stats(unidades):
-    """Retorna (total, completos, incompletos, pendentes)."""
     total = len(unidades)
     completos = sum(1 for u in unidades if u.status_atual == 'Completo')
     incompletos = sum(1 for u in unidades if u.status_atual == 'Incompleto')
@@ -211,7 +209,6 @@ def _calcular_stats(unidades):
 
 
 def _calcular_ranking_perdas(unidades, top=10):
-    """Ranking de peças mais perdidas nas últimas conferências."""
     contagem = {}
     for u in unidades:
         uc = u.ultima_conferencia
@@ -230,7 +227,7 @@ def _calcular_ranking_perdas(unidades, top=10):
 
 
 def _imagem_peca_path(imagem_url):
-    """Caminho absoluto da imagem de peça, ou None se não existir."""
+
     if not imagem_url or imagem_url in ('sem-foto.png', 'kit-default.png'):
         return None
     path = os.path.join(app.config['UPLOAD_FOLDER'], imagem_url)
@@ -238,7 +235,7 @@ def _imagem_peca_path(imagem_url):
 
 
 def _filtrar_detalhes(detalhes, modo):
-    """Filtra detalhes: 'completo'=todos, 'faltantes'=só com falta."""
+    
     if modo == 'faltantes':
         return [d for d in detalhes
                 if d.quantidade_encontrada < d.quantidade_esperada_na_epoca]
@@ -398,7 +395,7 @@ def dashboard_auxiliar():
     unidades = KitUnidade.query.filter_by(escola=minha_escola).all()
     completos = sum(1 for u in unidades if u.status_atual == 'Completo')
     incompletos = len(unidades) - completos
-    # Modelos que têm unidades nesta escola (auxiliar pode editar)
+
     modelo_ids = list({u.kit_modelo_id for u in unidades if u.kit_modelo_id})
     modelos_editaveis = KitModelo.query.filter(KitModelo.id.in_(modelo_ids)).all() if modelo_ids else []
     return render_template('auxiliar/dashboard.html',
@@ -482,11 +479,11 @@ def toggle_usuario(uid):
 @login_required(roles='admin')
 def deletar_usuario(uid):
     user = Usuario.query.get_or_404(uid)
-    # Proteção 1: não pode deletar a si mesmo
+
     if user.id == session['user_id']:
         flash('Você não pode excluir sua própria conta.', 'danger')
         return redirect(url_for('gerenciar_usuarios'))
-    # Proteção 2: não pode deletar o último admin
+    
     if user.role == 'admin':
         total_admins = Usuario.query.filter_by(role='admin').count()
         if total_admins <= 1:
@@ -725,7 +722,7 @@ def novo_modelo():
 def editar_modelo(mid):
     modelo = KitModelo.query.get_or_404(mid)
     user = usuario_atual()
-    # Auxiliar só pode editar modelos que têm unidades na sua escola
+
     if user.role == 'auxiliar':
         tem_unidade = KitUnidade.query.filter_by(kit_modelo_id=mid, escola=user.escola).first()
         if not tem_unidade:
@@ -765,6 +762,13 @@ def deletar_modelo(mid):
 @login_required(roles=['admin', 'auxiliar'])
 def gerenciar_composicao(modelo_id):
     modelo = KitModelo.query.get_or_404(modelo_id)
+    user = usuario_atual()
+
+    if user.role == 'auxiliar':
+        tem_unidade = KitUnidade.query.filter_by(kit_modelo_id=modelo_id, escola=user.escola).first()
+        if not tem_unidade:
+            flash('Você não tem permissão para gerir a composição deste modelo.', 'danger')
+            return redirect(url_for('dashboard_auxiliar'))
     pecas_catalogo = Peca.query.order_by(Peca.nome).all()
     if request.method == 'POST':
         peca_id = request.form.get('peca_id')
@@ -799,26 +803,31 @@ def remover_item_composicao(item_id):
     return redirect(url_for('gerenciar_composicao', modelo_id=modelo_id))
 
 
-@app.route('/api/composicao/ajustar_quantidade', methods=['POST'])
+@app.route('/api/composicao/<int:item_id>/quantidade', methods=['POST'])
 @login_required(roles=['admin', 'auxiliar'])
-def ajustar_quantidade_composicao():
-    data = request.get_json()
-    item_id = data.get('item_id')
-    delta = data.get('delta')
+def ajax_quantidade_composicao(item_id):
 
+    from flask import jsonify
     item = ComposicaoKit.query.get_or_404(item_id)
-    nova_qtd = item.quantidade_esperada + delta
+    user = usuario_atual()
 
-    if nova_qtd < 1:
-        return jsonify({'status': 'erro', 'mensagem': 'A quantidade mínima é 1.'}), 400
-
-    item.quantidade_esperada = nova_qtd
+    if user.role == 'auxiliar':
+        tem_unidade = KitUnidade.query.filter_by(
+            kit_modelo_id=item.kit_modelo_id, escola=user.escola).first()
+        if not tem_unidade:
+            return jsonify({'erro': 'Sem permissão para este modelo.'}), 403
+    delta = request.get_json(silent=True, force=True) or {}
+    acao = delta.get('acao', '')  
+    if acao == 'incrementar':
+        item.quantidade_esperada += 1
+    elif acao == 'decrementar':
+        if item.quantidade_esperada <= 1:
+            return jsonify({'erro': 'Quantidade mínima é 1.'}), 400
+        item.quantidade_esperada -= 1
+    else:
+        return jsonify({'erro': 'Ação inválida.'}), 400
     db.session.commit()
-
-    return jsonify({
-        'status': 'sucesso',
-        'nova_quantidade': item.quantidade_esperada
-    })
+    return jsonify({'quantidade': item.quantidade_esperada, 'item_id': item_id})
 
 
 # ─────────────────────────────────────────────
@@ -862,7 +871,7 @@ def nova_unidade():
 def editar_unidade(uid):
     unidade = KitUnidade.query.get_or_404(uid)
     user = usuario_atual()
-    # Auxiliar só pode editar unidades da sua escola
+
     if user.role == 'auxiliar' and unidade.escola != user.escola:
         flash('Você só pode editar unidades da sua escola.', 'danger')
         return redirect(url_for('conferencias_auxiliar'))
@@ -870,7 +879,7 @@ def editar_unidade(uid):
     escolas_lista = Escola.query.filter_by(ativo=True).order_by(Escola.nome).all()
     if request.method == 'POST':
         unidade.identificador = request.form.get('identificador', '').strip()
-        # Auxiliar não pode mudar a escola da unidade
+
         if user.role != 'auxiliar':
             unidade.escola = request.form.get('escola', '').strip()
         unidade.kit_modelo_id = request.form.get('modelo_id', unidade.kit_modelo_id)
@@ -1057,7 +1066,7 @@ def etiquetas_admin():
 #  PDF — FUNÇÕES CENTRALIZADAS
 # ─────────────────────────────────────────────
 def _pdf_styles():
-    """Estilos ReportLab reutilizáveis."""
+
     s = getSampleStyleSheet()
     az = colors.HexColor('#2563EB')
     return {
@@ -1077,7 +1086,7 @@ def _pdf_styles():
 
 
 def _img_cell(imagem_url, size_cm=1.2):
-    """Célula de imagem para tabela ReportLab."""
+
     if imagem_url and imagem_url not in ('sem-foto.png', 'kit-default.png'):
         path = os.path.join(app.config['UPLOAD_FOLDER'], imagem_url)
         if os.path.exists(path):
@@ -1089,7 +1098,7 @@ def _img_cell(imagem_url, size_cm=1.2):
 
 
 def _pdf_tabela_pecas(detalhes, st):
-    """Constrói tabela de peças com imagens para PDF. Retorna Table ou None."""
+
     if not detalhes:
         return None
     cols = [1.4*cm, 5.5*cm, 2.4*cm, 1.5*cm, 1.5*cm, 1.5*cm]
@@ -1129,7 +1138,7 @@ def _pdf_tabela_pecas(detalhes, st):
 
 
 def _pdf_relatorio_kit(unidade, modo='completo'):
-    """PDF completo de um kit com imagens."""
+
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4,
                             leftMargin=2*cm, rightMargin=2*cm,
@@ -1188,7 +1197,7 @@ def _pdf_relatorio_kit(unidade, modo='completo'):
 
 
 def _pdf_relatorio_escola(unidades, titulo, autor, modo='completo'):
-    """PDF consolidado de múltiplos kits com imagens."""
+
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4,
                             leftMargin=2*cm, rightMargin=2*cm,
@@ -1202,7 +1211,7 @@ def _pdf_relatorio_escola(unidades, titulo, autor, modo='completo'):
         Spacer(1, 10),
         Paragraph("Visão Geral dos Kits", st['sec']),
     ]
-    # Tabela resumo
+    
     hdr = [['Kit', 'Modelo', 'Status', 'Saúde', 'Última Conf.', 'Responsável']]
     rows = []
     for u in unidades:
@@ -1235,7 +1244,7 @@ def _pdf_relatorio_escola(unidades, titulo, autor, modo='completo'):
     tbl_resumo.setStyle(TableStyle(rc))
     els += [tbl_resumo, Spacer(1, 14)]
 
-    # Detalhes por kit
+    
     titulo_det = "Detalhes por Kit" if modo == 'completo' else "Peças Faltantes por Kit"
     els.append(Paragraph(titulo_det, st['sec']))
     for u in unidades:
@@ -1266,7 +1275,7 @@ def _modo_valido(modo):
 @app.route('/relatorio/kit/<int:kit_id>')
 @login_required(roles=['admin', 'pedagogo', 'auxiliar'])
 def relatorio_kit_view(kit_id):
-    """View HTML de relatório de um kit — completo ou faltantes."""
+
     unidade = KitUnidade.query.get_or_404(kit_id)
     user = usuario_atual()
     if user.role == 'auxiliar' and unidade.escola != user.escola:
@@ -1284,7 +1293,7 @@ def relatorio_kit_view(kit_id):
 @app.route('/relatorio/escola/<path:nome_escola>')
 @login_required(roles=['admin', 'pedagogo', 'auxiliar'])
 def relatorio_escola_view(nome_escola):
-    """View HTML de relatório de uma escola — completo ou faltantes."""
+
     user = usuario_atual()
     if user.role == 'auxiliar' and user.escola != nome_escola:
         abort(403)
@@ -1318,7 +1327,7 @@ def relatorio_escola_view(nome_escola):
 @app.route('/relatorio/kit/<int:kit_id>/pdf')
 @login_required(roles=['admin', 'pedagogo', 'auxiliar'])
 def relatorio_kit_pdf(kit_id):
-    """PDF de um kit — ?modo=completo|faltantes"""
+
     unidade = KitUnidade.query.get_or_404(kit_id)
     user = usuario_atual()
     if user.role == 'auxiliar' and unidade.escola != user.escola:
@@ -1333,7 +1342,7 @@ def relatorio_kit_pdf(kit_id):
 @app.route('/relatorio/escola/<path:nome_escola>/pdf')
 @login_required(roles=['admin', 'pedagogo', 'auxiliar'])
 def relatorio_escola_pdf(nome_escola):
-    """PDF de uma escola — ?modo=completo|faltantes"""
+
     user = usuario_atual()
     if user.role == 'auxiliar' and user.escola != nome_escola:
         abort(403)
@@ -1352,7 +1361,7 @@ def relatorio_escola_pdf(nome_escola):
 @app.route('/relatorio/geral/pdf')
 @login_required(roles=['admin', 'pedagogo'])
 def relatorio_geral_pdf():
-    """PDF geral — ?modo=completo|faltantes  ?escola="""
+    
     user = usuario_atual()
     acesso = escolas_do_usuario(user)
     escola_filtro = request.args.get('escola', '')

@@ -1,326 +1,355 @@
-{% extends 'base.html' %}
-{% block title %}Comparar Kits{% endblock %}
-
-{% block content %}
+{% extends 'base.html' %} {% block title %}Comparar Kits{% endblock %} {% block
+content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h2 class="fw-800 mb-0">Comparar Kits</h2>
-        <p class="text-muted small mb-0">Análise de evolução e perda de peças</p>
-    </div>
-    <div class="d-flex gap-2">
-        {% if session.get('user_role') != 'auxiliar' %}
-        <form method="GET" class="d-flex gap-2 align-items-center">
-            <select name="escola" class="form-select form-select-sm" style="min-width:200px"
-                    onchange="this.form.submit()">
-                <option value="">Todas as escolas</option>
-                {% for e in escolas_lista %}
-                <option value="{{ e }}" {% if escola == e %}selected{% endif %}>{{ e }}</option>
-                {% endfor %}
-            </select>
-        </form>
+  <div>
+    <h2 class="fw-800 mb-0">Comparar Kits</h2>
+    <p class="text-muted small mb-0">Análise de evolução e perda de peças</p>
+  </div>
+  <div class="d-flex gap-2">
+    {% if session.get('user_role') != 'auxiliar' %}
+    <form method="GET" class="d-flex gap-2 align-items-center">
+      <select
+        name="escola"
+        class="form-select form-select-sm"
+        style="min-width: 200px"
+        onchange="this.form.submit()"
+      >
+        <option value="">Todas as escolas</option>
+        {% for e in escolas_lista %}
+        <option value="{{ e }}" {% if escola="" ="e" %}selected{% endif %}>
+          {{ e }}
+        </option>
+        {% endfor %}
+      </select>
+    </form>
+    {% endif %}
+    <div class="dropdown">
+      <button
+        class="btn btn-outline-primary btn-sm fw-semibold dropdown-toggle"
+        data-bs-toggle="dropdown"
+      >
+        <i class="bi bi-file-earmark-pdf me-1"></i>Relatório
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+        {% if escola %}
+        <li>
+          <a
+            class="dropdown-item"
+            href="{{ url_for('relatorio_escola_pdf', nome_escola=escola, modo='completo') }}"
+          >
+            <i class="bi bi-list-check me-2 text-primary"></i>PDF completo
+          </a>
+        </li>
+        <li>
+          <a
+            class="dropdown-item"
+            href="{{ url_for('relatorio_escola_pdf', nome_escola=escola, modo='faltantes') }}"
+          >
+            <i class="bi bi-exclamation-triangle me-2 text-danger"></i>PDF
+            faltantes
+          </a>
+        </li>
+        {% else %}
+        <li>
+          <a
+            class="dropdown-item"
+            href="{{ url_for('relatorio_geral_pdf', modo='completo') }}"
+          >
+            <i class="bi bi-list-check me-2 text-primary"></i>PDF completo
+            (geral)
+          </a>
+        </li>
+        <li>
+          <a
+            class="dropdown-item"
+            href="{{ url_for('relatorio_geral_pdf', modo='faltantes') }}"
+          >
+            <i class="bi bi-exclamation-triangle me-2 text-danger"></i>PDF
+            faltantes (geral)
+          </a>
+        </li>
         {% endif %}
-        <div class="dropdown">
-          <button class="btn btn-outline-primary btn-sm fw-semibold dropdown-toggle" data-bs-toggle="dropdown">
-            <i class="bi bi-file-earmark-pdf me-1"></i>Relatório
-          </button>
-          <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-            {% if escola %}
-            <li><a class="dropdown-item"
-                   href="{{ url_for('relatorio_escola_pdf', nome_escola=escola, modo='completo') }}">
-              <i class="bi bi-list-check me-2 text-primary"></i>PDF completo
-            </a></li>
-            <li><a class="dropdown-item"
-                   href="{{ url_for('relatorio_escola_pdf', nome_escola=escola, modo='faltantes') }}">
-              <i class="bi bi-exclamation-triangle me-2 text-danger"></i>PDF faltantes
-            </a></li>
-            {% else %}
-            <li><a class="dropdown-item"
-                   href="{{ url_for('relatorio_geral_pdf', modo='completo') }}">
-              <i class="bi bi-list-check me-2 text-primary"></i>PDF completo (geral)
-            </a></li>
-            <li><a class="dropdown-item"
-                   href="{{ url_for('relatorio_geral_pdf', modo='faltantes') }}">
-              <i class="bi bi-exclamation-triangle me-2 text-danger"></i>PDF faltantes (geral)
-            </a></li>
-            {% endif %}
-          </ul>
-        </div>
-        <a href="{{ url_for('conferencias_auxiliar') if session.get('user_role') == 'auxiliar' else url_for('dashboard') }}"
-           class="btn btn-light btn-sm">
-            <i class="bi bi-arrow-left me-1"></i>Voltar
-        </a>
+      </ul>
     </div>
+    <a
+      href="{{ url_for('conferencias_auxiliar') if session.get('user_role') == 'auxiliar' else url_for('dashboard') }}"
+      class="btn btn-light btn-sm"
+    >
+      <i class="bi bi-arrow-left me-1"></i>Voltar
+    </a>
+  </div>
 </div>
 
 {% if not datasets %}
 <div class="text-center py-5">
-    <i class="bi bi-bar-chart text-muted" style="font-size:3rem"></i>
-    <p class="text-muted mt-2">Nenhum dado de conferência disponível ainda.</p>
-    <p class="small text-muted">Realize conferências nos kits para ver os dados aqui.</p>
+  <i class="bi bi-bar-chart text-muted" style="font-size: 3rem"></i>
+  <p class="text-muted mt-2">Nenhum dado de conferência disponível ainda.</p>
+  <p class="small text-muted">
+    Realize conferências nos kits para ver os dados aqui.
+  </p>
 </div>
-{% else %}
-
-{# ── RESUMO EM CARDS ── #}
+{% else %} {# ── RESUMO EM CARDS ── #}
 <div class="row g-3 mb-4">
-    {% for d in datasets %}
-    <div class="col-6 col-md-4 col-lg-3">
-        <div class="card p-3 h-100 border-0 shadow-sm">
-            <div class="d-flex justify-content-between align-items-start mb-1">
-                <span class="fw-bold small text-truncate me-2">{{ d.nome }}</span>
-                <span class="badge {% if d.status == 'Completo' %}badge-status-completo
-                                   {% elif d.status == 'Incompleto' %}badge-status-incompleto
-                                   {% else %}badge-status-pendente{% endif %} flex-shrink-0">
-                    {{ d.status }}
-                </span>
-            </div>
-            {% if d.saude is not none %}
-            <div class="d-flex align-items-center gap-2 mt-1">
-                <div class="progress flex-grow-1" style="height:6px">
-                    <div class="progress-bar
-                        {% if d.saude >= 90 %}bg-success
-                        {% elif d.saude >= 60 %}bg-warning
-                        {% else %}bg-danger{% endif %}"
-                         style="width:{{ d.saude }}%"></div>
-                </div>
-                <small class="fw-bold
-                    {% if d.saude >= 90 %}text-success
-                    {% elif d.saude >= 60 %}text-warning
-                    {% else %}text-danger{% endif %}">
-                    {{ d.saude }}%
-                </small>
+  {% for d in datasets %}
+  <div class="col-6 col-md-4 col-lg-3">
+    <div class="card p-3 h-100 border-0 shadow-sm">
+      <div class="d-flex justify-content-between align-items-start mb-1">
+        <span class="fw-bold small text-truncate me-2">{{ d.nome }}</span>
+        <span
+          class="badge {% if d.status == 'Completo' %}badge-status-completo {% elif d.status == 'Incompleto' %}badge-status-incompleto {% else %}badge-status-pendente{% endif %} flex-shrink-0"
+        >
+          {{ d.status }}
+        </span>
+      </div>
+      {% if d.saude is not none %}
+      <div class="d-flex align-items-center gap-2 mt-1">
+        <div class="progress flex-grow-1" style="height: 6px">
+          <div
+            class="progress-bar {% if d.saude >= 90 %}bg-success {% elif d.saude >= 60 %}bg-warning {% else %}bg-danger{% endif %}"
+            style="width:{{ d.saude }}%"
+          ></div>
+        </div>
+        <small
+          class="fw-bold {% if d.saude >= 90 %}text-success {% elif d.saude >= 60 %}text-warning {% else %}text-danger{% endif %}"
+        >
+          {{ d.saude }}%
+        </small>
+      </div>
+      {% else %}
+      <small class="text-muted">Sem dados</small>
+      {% endif %}
+      <div class="mt-2">
+        <a
+          href="{{ url_for('historico_kit_auxiliar', kit_id=d.id) }}"
+          class="btn btn-outline-secondary btn-sm w-100 py-0"
+        >
+          <small>Ver histórico</small>
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{# ── GRÁFICO DE EVOLUÇÃO COMPARATIVA ── #} {% if labels_ord|length > 0 and
+datasets|length > 0 %}
+<div class="card p-4 mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="fw-bold mb-0">Evolução Comparativa de Saúde</h5>
+    <div class="d-flex gap-2">
+      <button class="btn btn-sm btn-outline-secondary" id="btnTodos">
+        Todos
+      </button>
+      <button class="btn btn-sm btn-outline-danger" id="btnProblemas">
+        Só com problemas
+      </button>
+    </div>
+  </div>
+  <canvas id="graficoComparacao" height="120"></canvas>
+</div>
+{% endif %} {# ── HEATMAP DE STATUS ── #}
+<div class="card p-4 mb-4">
+  <h5 class="fw-bold mb-3">Mapa de Saúde por Data</h5>
+  <div class="table-responsive">
+    <table class="table table-sm align-middle mb-0" id="tabelaHeatmap">
+      <thead class="bg-light">
+        <tr>
+          <th style="min-width: 140px">Kit</th>
+          {% for label in labels_ord %}
+          <th class="text-center small" style="min-width: 65px">{{ label }}</th>
+          {% endfor %}
+          <th class="text-center small">Atual</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in datasets %}
+        <tr>
+          <td>
+            <a
+              href="{{ url_for('historico_kit_auxiliar', kit_id=d.id) }}"
+              class="fw-semibold text-decoration-none small"
+            >
+              {{ d.nome }}
+            </a>
+          </td>
+          {% for label in labels_ord %} {% set val = d.pontos.get(label) %}
+          <td class="text-center p-1">
+            {% if val is not none %}
+            <div
+              class="rounded-2 py-1 px-0 small fw-bold"
+              style="background:{{ 'rgba(16,185,129,0.2)' if val >= 90 else ('rgba(245,158,11,0.2)' if val >= 60 else 'rgba(239,68,68,0.2)') }};
+                                    color:{{ '#065F46' if val >= 90 else ('#92400E' if val >= 60 else '#991B1B') }}"
+            >
+              {{ val }}%
             </div>
             {% else %}
-            <small class="text-muted">Sem dados</small>
+            <div class="text-muted small">—</div>
             {% endif %}
-            <div class="mt-2">
-                <a href="{{ url_for('historico_kit_auxiliar', kit_id=d.id) }}"
-                   class="btn btn-outline-secondary btn-sm w-100 py-0">
-                    <small>Ver histórico</small>
-                </a>
-            </div>
-        </div>
-    </div>
-    {% endfor %}
+          </td>
+          {% endfor %}
+          <td class="text-center">
+            {% if d.saude is not none %}
+            <span
+              class="badge {% if d.saude >= 90 %}badge-status-completo {% elif d.saude >= 60 %}bg-warning text-dark {% else %}badge-status-incompleto{% endif %}"
+            >
+              {{ d.saude }}%
+            </span>
+            {% else %}—{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 
-{# ── GRÁFICO DE EVOLUÇÃO COMPARATIVA ── #}
-{% if labels_ord|length > 0 and datasets|length > 0 %}
+{# ── RANKING DE PERDA DE PEÇAS ── #} {% if ranking_perdas %}
 <div class="card p-4 mb-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="fw-bold mb-0">Evolução Comparativa de Saúde</h5>
-        <div class="d-flex gap-2">
-            <button class="btn btn-sm btn-outline-secondary" id="btnTodos">Todos</button>
-            <button class="btn btn-sm btn-outline-danger" id="btnProblemas">Só com problemas</button>
-        </div>
-    </div>
-    <canvas id="graficoComparacao" height="120"></canvas>
-</div>
-{% endif %}
+  <h5 class="fw-bold mb-1">Ranking de Perda de Peças</h5>
+  <p class="text-muted small mb-3">
+    Peças com maior número de unidades faltando nas últimas conferências.
+  </p>
 
-{# ── HEATMAP DE STATUS ── #}
-<div class="card p-4 mb-4">
-    <h5 class="fw-bold mb-3">Mapa de Saúde por Data</h5>
-    <div class="table-responsive">
-        <table class="table table-sm align-middle mb-0" id="tabelaHeatmap">
-            <thead class="bg-light">
-                <tr>
-                    <th style="min-width:140px">Kit</th>
-                    {% for label in labels_ord %}
-                    <th class="text-center small" style="min-width:65px">{{ label }}</th>
-                    {% endfor %}
-                    <th class="text-center small">Atual</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for d in datasets %}
-                <tr>
-                    <td>
-                        <a href="{{ url_for('historico_kit_auxiliar', kit_id=d.id) }}"
-                           class="fw-semibold text-decoration-none small">
-                            {{ d.nome }}
-                        </a>
-                    </td>
-                    {% for label in labels_ord %}
-                    {% set val = d.pontos.get(label) %}
-                    <td class="text-center p-1">
-                        {% if val is not none %}
-                        <div class="rounded-2 py-1 px-0 small fw-bold"
-                             style="background:{{ 'rgba(16,185,129,0.2)' if val >= 90 else ('rgba(245,158,11,0.2)' if val >= 60 else 'rgba(239,68,68,0.2)') }};
-                                    color:{{ '#065F46' if val >= 90 else ('#92400E' if val >= 60 else '#991B1B') }}">
-                            {{ val }}%
-                        </div>
-                        {% else %}
-                        <div class="text-muted small">—</div>
-                        {% endif %}
-                    </td>
-                    {% endfor %}
-                    <td class="text-center">
-                        {% if d.saude is not none %}
-                        <span class="badge {% if d.saude >= 90 %}badge-status-completo
-                                          {% elif d.saude >= 60 %}bg-warning text-dark
-                                          {% else %}badge-status-incompleto{% endif %}">
-                            {{ d.saude }}%
-                        </span>
-                        {% else %}—{% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
+  <div class="row g-3">
+    <div class="col-md-6">
+      <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+          <thead class="bg-light">
+            <tr>
+              <th>#</th>
+              <th>Peça</th>
+              <th class="text-center">Unidades faltando</th>
+              <th class="text-center">Kits afetados</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in ranking_perdas %}
+            <tr>
+              <td>
+                <span
+                  class="fw-bold {% if loop.index == 1 %}text-danger {% elif loop.index <= 3 %}text-warning {% else %}text-muted{% endif %}"
+                >
+                  #{{ loop.index }}
+                </span>
+              </td>
+              <td>
+                <span class="fw-semibold small">{{ p.nome }}</span>
+                <small class="text-muted d-block"
+                  ><code>{{ p.codigo }}</code></small
+                >
+              </td>
+              <td class="text-center">
+                <span class="badge badge-status-incompleto">
+                  -{{ p.perdas }}
+                </span>
+              </td>
+              <td class="text-center">
+                <span class="badge bg-secondary">{{ p.kits_com_falta }}</span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
         </table>
+      </div>
     </div>
-</div>
 
-{# ── RANKING DE PERDA DE PEÇAS ── #}
-{% if ranking_perdas %}
-<div class="card p-4 mb-4">
-    <h5 class="fw-bold mb-1">Ranking de Perda de Peças</h5>
-    <p class="text-muted small mb-3">
-        Peças com maior número de unidades faltando nas últimas conferências.
-    </p>
-
-    <div class="row g-3">
-        <div class="col-md-6">
-            <div class="table-responsive">
-                <table class="table table-sm align-middle mb-0">
-                    <thead class="bg-light">
-                        <tr>
-                            <th>#</th>
-                            <th>Peça</th>
-                            <th class="text-center">Unidades faltando</th>
-                            <th class="text-center">Kits afetados</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for p in ranking_perdas %}
-                        <tr>
-                            <td>
-                                <span class="fw-bold
-                                    {% if loop.index == 1 %}text-danger
-                                    {% elif loop.index <= 3 %}text-warning
-                                    {% else %}text-muted{% endif %}">
-                                    #{{ loop.index }}
-                                </span>
-                            </td>
-                            <td>
-                                <span class="fw-semibold small">{{ p.nome }}</span>
-                                <small class="text-muted d-block"><code>{{ p.codigo }}</code></small>
-                            </td>
-                            <td class="text-center">
-                                <span class="badge badge-status-incompleto">
-                                    -{{ p.perdas }}
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                <span class="badge bg-secondary">{{ p.kits_com_falta }}</span>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="col-md-6">
-            <canvas id="graficoRanking" height="200"></canvas>
-        </div>
+    <div class="col-md-6">
+      <canvas id="graficoRanking" height="200"></canvas>
     </div>
+  </div>
 </div>
-{% endif %}
-
-{% endif %} {# end if datasets #}
-{% endblock %}
-
-{% block extra_js %}
+{% endif %} {% endif %} {# end if datasets #} {% endblock %} {% block extra_js
+%}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-// ── Paleta de cores para os kits ────────────────────────────────────────────
-const PALETTE = [
-    '#2563EB','#10B981','#F59E0B','#EF4444','#8B5CF6',
-    '#EC4899','#06B6D4','#84CC16','#F97316','#6366F1',
-    '#14B8A6','#E11D48','#7C3AED','#0EA5E9','#D97706',
-];
+  // ── Paleta de cores para os kits ────────────────────────────────────────────
+  const PALETTE = [
+      '#2563EB','#10B981','#F59E0B','#EF4444','#8B5CF6',
+      '#EC4899','#06B6D4','#84CC16','#F97316','#6366F1',
+      '#14B8A6','#E11D48','#7C3AED','#0EA5E9','#D97706',
+  ];
 
-// ── Dados do servidor ────────────────────────────────────────────────────────
-const labels = {{ labels_ord | tojson }};
-const rawDatasets = {{ datasets | tojson }};
+  // ── Dados do servidor ────────────────────────────────────────────────────────
+  const labels = {{ labels_ord | tojson }};
+  const rawDatasets = {{ datasets | tojson }};
 
-// ── Gráfico de evolução comparativa ─────────────────────────────────────────
-{% if labels_ord|length > 0 and datasets|length > 0 %}
-const ctxComp = document.getElementById('graficoComparacao');
-if (ctxComp) {
-    const chartDatasets = rawDatasets.map((d, i) => ({
-        label: d.nome,
-        data: labels.map(l => d.pontos[l] ?? null),
-        borderColor: PALETTE[i % PALETTE.length],
-        backgroundColor: 'transparent',
-        borderWidth: 2,
-        tension: 0.3,
-        pointRadius: 4,
-        spanGaps: true,
-    }));
+  // ── Gráfico de evolução comparativa ─────────────────────────────────────────
+  {% if labels_ord|length > 0 and datasets|length > 0 %}
+  const ctxComp = document.getElementById('graficoComparacao');
+  if (ctxComp) {
+      const chartDatasets = rawDatasets.map((d, i) => ({
+          label: d.nome,
+          data: labels.map(l => d.pontos[l] ?? null),
+          borderColor: PALETTE[i % PALETTE.length],
+          backgroundColor: 'transparent',
+          borderWidth: 2,
+          tension: 0.3,
+          pointRadius: 4,
+          spanGaps: true,
+      }));
 
-    const chartComp = new Chart(ctxComp.getContext('2d'), {
-        type: 'line',
-        data: { labels, datasets: chartDatasets },
-        options: {
-            responsive: true,
-            interaction: { mode: 'index', intersect: false },
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: { boxWidth: 12, font: { size: 11 } }
-                },
-                tooltip: {
-                    callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y}%` }
-                }
-            },
-            scales: {
-                y: { min: 0, max: 100, ticks: { callback: v => v + '%' } }
-            }
-        }
-    });
+      const chartComp = new Chart(ctxComp.getContext('2d'), {
+          type: 'line',
+          data: { labels, datasets: chartDatasets },
+          options: {
+              responsive: true,
+              interaction: { mode: 'index', intersect: false },
+              plugins: {
+                  legend: {
+                      position: 'bottom',
+                      labels: { boxWidth: 12, font: { size: 11 } }
+                  },
+                  tooltip: {
+                      callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y}%` }
+                  }
+              },
+              scales: {
+                  y: { min: 0, max: 100, ticks: { callback: v => v + '%' } }
+              }
+          }
+      });
 
-    // Filtros
-    document.getElementById('btnTodos').addEventListener('click', () => {
-        chartComp.data.datasets.forEach(ds => ds.hidden = false);
-        chartComp.update();
-    });
-    document.getElementById('btnProblemas').addEventListener('click', () => {
-        chartComp.data.datasets.forEach((ds, i) => {
-            ds.hidden = rawDatasets[i]?.saude === null || rawDatasets[i]?.saude >= 90;
-        });
-        chartComp.update();
-    });
-}
-{% endif %}
+      // Filtros
+      document.getElementById('btnTodos').addEventListener('click', () => {
+          chartComp.data.datasets.forEach(ds => ds.hidden = false);
+          chartComp.update();
+      });
+      document.getElementById('btnProblemas').addEventListener('click', () => {
+          chartComp.data.datasets.forEach((ds, i) => {
+              ds.hidden = rawDatasets[i]?.saude === null || rawDatasets[i]?.saude >= 90;
+          });
+          chartComp.update();
+      });
+  }
+  {% endif %}
 
-// ── Gráfico de ranking de perdas ─────────────────────────────────────────────
-{% if ranking_perdas %}
-const rankingData = {{ ranking_perdas | tojson }};
-const ctxRank = document.getElementById('graficoRanking');
-if (ctxRank && rankingData.length) {
-    new Chart(ctxRank.getContext('2d'), {
-        type: 'bar',
-        data: {
-            labels: rankingData.map(p => p.nome.length > 20 ? p.nome.slice(0,20)+'…' : p.nome),
-            datasets: [{
-                label: 'Unidades faltando',
-                data: rankingData.map(p => p.perdas),
-                backgroundColor: rankingData.map((_, i) =>
-                    i === 0 ? '#EF4444' : i < 3 ? '#F59E0B' : '#94A3B8'),
-                borderRadius: 4,
-            }]
-        },
-        options: {
-            indexAxis: 'y',
-            responsive: true,
-            plugins: { legend: { display: false } },
-            scales: {
-                x: { beginAtZero: true, ticks: { precision: 0 } }
-            }
-        }
-    });
-}
-{% endif %}
+  // ── Gráfico de ranking de perdas ─────────────────────────────────────────────
+  {% if ranking_perdas %}
+  const rankingData = {{ ranking_perdas | tojson }};
+  const ctxRank = document.getElementById('graficoRanking');
+  if (ctxRank && rankingData.length) {
+      new Chart(ctxRank.getContext('2d'), {
+          type: 'bar',
+          data: {
+              labels: rankingData.map(p => p.nome.length > 20 ? p.nome.slice(0,20)+'…' : p.nome),
+              datasets: [{
+                  label: 'Unidades faltando',
+                  data: rankingData.map(p => p.perdas),
+                  backgroundColor: rankingData.map((_, i) =>
+                      i === 0 ? '#EF4444' : i < 3 ? '#F59E0B' : '#94A3B8'),
+                  borderRadius: 4,
+              }]
+          },
+          options: {
+              indexAxis: 'y',
+              responsive: true,
+              plugins: { legend: { display: false } },
+              scales: {
+                  x: { beginAtZero: true, ticks: { precision: 0 } }
+              }
+          }
+      });
+  }
+  {% endif %}
 </script>
 {% endblock %}

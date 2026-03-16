@@ -1,54 +1,71 @@
-{% extends 'base.html' %}
-{% block title %}Tokens de API{% endblock %}
-
-{% block content %}
+{% extends 'base.html' %} {% block title %}Tokens de API{% endblock %} {% block
+content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
   <div>
     <h2 class="fw-800 mb-0">API Pública — Tokens de Acesso</h2>
-    <p class="text-muted small mb-0">Gerencie tokens para integração com Power BI, Google Sheets, etc.</p>
+    <p class="text-muted small mb-0">
+      Gerencie tokens para integração com Power BI, Google Sheets, etc.
+    </p>
   </div>
-  <button class="btn btn-primary btn-sm fw-semibold" data-bs-toggle="modal" data-bs-target="#modalNovoToken">
+  <button
+    class="btn btn-primary btn-sm fw-semibold"
+    data-bs-toggle="modal"
+    data-bs-target="#modalNovoToken"
+  >
     <i class="bi bi-plus me-1"></i>Novo Token
   </button>
 </div>
 
 {# DOCUMENTAÇÃO DA API #}
 <div class="card border-0 shadow-sm mb-4">
-  <div class="card-header bg-dark text-white py-2 px-3 d-flex align-items-center gap-2">
+  <div
+    class="card-header bg-dark text-white py-2 px-3 d-flex align-items-center gap-2"
+  >
     <i class="bi bi-braces-asterisk"></i>
     <span class="fw-semibold">Documentação Rápida da API</span>
-    <button class="btn btn-sm btn-outline-light ms-auto py-0" type="button"
-            data-bs-toggle="collapse" data-bs-target="#docCollapse">
+    <button
+      class="btn btn-sm btn-outline-light ms-auto py-0"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#docCollapse"
+    >
       Expandir
     </button>
   </div>
   <div class="collapse" id="docCollapse">
     <div class="card-body p-4">
       <p class="text-muted small mb-3">
-        Todos os endpoints exigem o header: <code>Authorization: Bearer SEU_TOKEN</code>
+        Todos os endpoints exigem o header:
+        <code>Authorization: Bearer SEU_TOKEN</code>
       </p>
 
       {% set host = request.host_url.rstrip('/') %}
       <div class="row g-3">
-        {% set endpoints = [
-          ('GET', '/api/v1/status', 'Health-check (sem autenticação)', ''),
-          ('GET', '/api/v1/escolas', 'Lista todas as escolas com stats', ''),
-          ('GET', '/api/v1/kits', 'Lista todos os kits', '?escola=NOME&status=Completo'),
-          ('GET', '/api/v1/kits/{id}', 'Detalhes completos + conferências de um kit', ''),
-          ('GET', '/api/v1/perdas', 'Ranking de peças mais perdidas', '?escola=NOME'),
-          ('GET', '/api/v1/pendentes', 'Kits não conferidos recentemente', '?dias=30&escola=NOME'),
-        ] %}
-        {% for method, path, desc, params in endpoints %}
+        {% set endpoints = [ ('GET', '/api/v1/status', 'Health-check (sem
+        autenticação)', ''), ('GET', '/api/v1/escolas', 'Lista todas as escolas
+        com stats', ''), ('GET', '/api/v1/kits', 'Lista todos os kits',
+        '?escola=NOME&status=Completo'), ('GET', '/api/v1/kits/{id}', 'Detalhes
+        completos + conferências de um kit', ''), ('GET', '/api/v1/perdas',
+        'Ranking de peças mais perdidas', '?escola=NOME'), ('GET',
+        '/api/v1/pendentes', 'Kits não conferidos recentemente',
+        '?dias=30&escola=NOME'), ] %} {% for method, path, desc, params in
+        endpoints %}
         <div class="col-12">
           <div class="d-flex align-items-start gap-2 p-2 bg-light rounded">
-            <span class="badge bg-success fw-bold" style="min-width:45px">{{ method }}</span>
+            <span class="badge bg-success fw-bold" style="min-width: 45px"
+              >{{ method }}</span
+            >
             <div class="flex-grow-1">
               <code class="text-dark fw-semibold">{{ host }}{{ path }}</code>
-              {% if params %}<small class="text-muted ms-2">{{ params }}</small>{% endif %}
+              {% if params %}<small class="text-muted ms-2">{{ params }}</small
+              >{% endif %}
               <div class="small text-muted mt-1">{{ desc }}</div>
             </div>
-            <button class="btn btn-sm btn-outline-secondary py-0"
-                    onclick="copiar('{{ host }}{{ path }}{{ params }}')" title="Copiar URL">
+            <button
+              class="btn btn-sm btn-outline-secondary py-0"
+              onclick="copiar('{{ host }}{{ path }}{{ params }}')"
+              title="Copiar URL"
+            >
               <i class="bi bi-clipboard"></i>
             </button>
           </div>
@@ -57,15 +74,18 @@
       </div>
 
       <div class="alert alert-info mt-3 small mb-0">
-        <strong>Power BI:</strong> Use "Web" como fonte de dados, URL da rota desejada, e adicione o header <code>Authorization</code> em "Cabeçalhos HTTP".<br>
-        <strong>Google Sheets:</strong> Use <code>=IMPORTDATA("{{ host }}/api/v1/kits")</code> após configurar um proxy ou use o Apps Script para passar o header.
+        <strong>Power BI:</strong> Use "Web" como fonte de dados, URL da rota
+        desejada, e adicione o header <code>Authorization</code> em "Cabeçalhos
+        HTTP".<br />
+        <strong>Google Sheets:</strong> Use
+        <code>=IMPORTDATA("{{ host }}/api/v1/kits")</code> após configurar um
+        proxy ou use o Apps Script para passar o header.
       </div>
     </div>
   </div>
 </div>
 
-{# TOKENS EXISTENTES #}
-{% if tokens %}
+{# TOKENS EXISTENTES #} {% if tokens %}
 <div class="card border-0 shadow-sm">
   <div class="table-responsive">
     <table class="table table-hover align-middle mb-0">
@@ -84,35 +104,73 @@
         <tr>
           <td>
             <span class="fw-semibold">{{ t.nome }}</span>
-            <small class="text-muted d-block font-monospace">{{ t.token[:16] }}…</small>
+            <small class="text-muted d-block font-monospace"
+              >{{ t.token[:16] }}…</small
+            >
           </td>
-          <td><small class="text-muted">{{ t.escola or 'Todas as escolas' }}</small></td>
+          <td>
+            <small class="text-muted"
+              >{{ t.escola or 'Todas as escolas' }}</small
+            >
+          </td>
           <td class="text-center">
-            <span class="badge {% if t.ativo %}badge-status-completo{% else %}badge-status-incompleto{% endif %}">
+            <span
+              class="badge {% if t.ativo %}badge-status-completo{% else %}badge-status-incompleto{% endif %}"
+            >
               {{ 'Ativo' if t.ativo else 'Revogado' }}
             </span>
           </td>
-          <td class="small text-muted">{{ t.criado_em.strftime('%d/%m/%Y') }}</td>
-          <td class="small text-muted">{{ t.ultimo_uso.strftime('%d/%m/%Y %H:%M') if t.ultimo_uso else '—' }}</td>
+          <td class="small text-muted">
+            {{ t.criado_em.strftime('%d/%m/%Y') }}
+          </td>
+          <td class="small text-muted">
+            {{ t.ultimo_uso.strftime('%d/%m/%Y %H:%M') if t.ultimo_uso else '—'
+            }}
+          </td>
           <td>
             <div class="d-flex gap-1 justify-content-end">
-              <button class="btn btn-sm btn-outline-secondary" title="Copiar token"
-                      onclick="copiar('{{ t.token }}')">
+              <button
+                class="btn btn-sm btn-outline-secondary"
+                title="Copiar token"
+                onclick="copiar('{{ t.token }}')"
+              >
                 <i class="bi bi-clipboard"></i>
               </button>
               {% if t.ativo %}
-              <form method="POST" action="{{ url_for('revogar_token', tid=t.id) }}"
-                    onsubmit="return confirm('Revogar token \'{{ t.nome }}\'?')">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button type="submit" class="btn btn-sm btn-outline-warning" title="Revogar">
+              <form
+                method="POST"
+                action="{{ url_for('revogar_token', tid=t.id) }}"
+                onsubmit="return confirm('Revogar token \'{{ t.nome }}\'?')"
+              >
+                <input
+                  type="hidden"
+                  name="csrf_token"
+                  value="{{ csrf_token() }}"
+                />
+                <button
+                  type="submit"
+                  class="btn btn-sm btn-outline-warning"
+                  title="Revogar"
+                >
                   <i class="bi bi-slash-circle"></i>
                 </button>
               </form>
               {% endif %}
-              <form method="POST" action="{{ url_for('deletar_token', tid=t.id) }}"
-                    onsubmit="return confirm('Deletar permanentemente?')">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button type="submit" class="btn btn-sm btn-outline-danger" title="Deletar">
+              <form
+                method="POST"
+                action="{{ url_for('deletar_token', tid=t.id) }}"
+                onsubmit="return confirm('Deletar permanentemente?');"
+              >
+                <input
+                  type="hidden"
+                  name="csrf_token"
+                  value="{{ csrf_token() }}"
+                />
+                <button
+                  type="submit"
+                  class="btn btn-sm btn-outline-danger"
+                  title="Deletar"
+                >
                   <i class="bi bi-trash"></i>
                 </button>
               </form>
@@ -126,27 +184,38 @@
 </div>
 {% else %}
 <div class="text-center py-5">
-  <i class="bi bi-key text-muted" style="font-size:3rem"></i>
+  <i class="bi bi-key text-muted" style="font-size: 3rem"></i>
   <p class="text-muted mt-2">Nenhum token criado ainda.</p>
 </div>
-{% endif %}
-
-{# MODAL NOVO TOKEN #}
+{% endif %} {# MODAL NOVO TOKEN #}
 <div class="modal fade" id="modalNovoToken" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content border-0 shadow">
       <div class="modal-header border-0">
         <h5 class="fw-800 mb-0">Novo Token de API</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
       </div>
       <form method="POST" action="{{ url_for('novo_api_token') }}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="modal-body">
           <div class="mb-3">
-            <label class="form-label fw-semibold">Nome do token <span class="text-danger">*</span></label>
-            <input type="text" name="nome" class="form-control"
-                   placeholder="Ex: Power BI — Escola Girassol" required>
-            <small class="text-muted">Identifica onde este token é usado.</small>
+            <label class="form-label fw-semibold"
+              >Nome do token <span class="text-danger">*</span></label
+            >
+            <input
+              type="text"
+              name="nome"
+              class="form-control"
+              placeholder="Ex: Power BI — Escola Girassol"
+              required
+            />
+            <small class="text-muted"
+              >Identifica onde este token é usado.</small
+            >
           </div>
           <div class="mb-3">
             <label class="form-label fw-semibold">Escola (opcional)</label>
@@ -156,15 +225,24 @@
               <option value="{{ e.nome }}">{{ e.nome }}</option>
               {% endfor %}
             </select>
-            <small class="text-muted">Restringe o token a uma escola específica.</small>
+            <small class="text-muted"
+              >Restringe o token a uma escola específica.</small
+            >
           </div>
           <div class="alert alert-warning small mb-0">
             <i class="bi bi-exclamation-triangle me-1"></i>
-            O token será exibido <strong>uma única vez</strong> após criação. Salve-o em local seguro.
+            O token será exibido <strong>uma única vez</strong> após criação.
+            Salve-o em local seguro.
           </div>
         </div>
         <div class="modal-footer border-0">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button
+            type="button"
+            class="btn btn-outline-secondary"
+            data-bs-dismiss="modal"
+          >
+            Cancelar
+          </button>
           <button type="submit" class="btn btn-primary fw-bold">
             <i class="bi bi-key me-1"></i>Gerar Token
           </button>
@@ -174,23 +252,33 @@
   </div>
 </div>
 
-<div id="toast-copiar" class="position-fixed bottom-0 end-0 p-3" style="z-index:9999">
+<div
+  id="toast-copiar"
+  class="position-fixed bottom-0 end-0 p-3"
+  style="z-index: 9999"
+>
   <div class="toast align-items-center text-bg-dark border-0" role="alert">
     <div class="d-flex">
-      <div class="toast-body fw-semibold"><i class="bi bi-check2 me-2"></i>Copiado!</div>
-      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      <div class="toast-body fw-semibold">
+        <i class="bi bi-check2 me-2"></i>Copiado!
+      </div>
+      <button
+        type="button"
+        class="btn-close btn-close-white me-2 m-auto"
+        data-bs-dismiss="toast"
+      ></button>
     </div>
   </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
+{% endblock %} {% block extra_js %}
 <script>
-function copiar(texto) {
-  navigator.clipboard.writeText(texto).then(() => {
-    const toast = new bootstrap.Toast(document.querySelector('#toast-copiar .toast'));
-    toast.show();
-  });
-}
+  function copiar(texto) {
+    navigator.clipboard.writeText(texto).then(() => {
+      const toast = new bootstrap.Toast(
+        document.querySelector("#toast-copiar .toast"),
+      );
+      toast.show();
+    });
+  }
 </script>
 {% endblock %}

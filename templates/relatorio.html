@@ -1,20 +1,33 @@
-{% extends 'base.html' %}
-{% block title %}
-  {% if modo == 'faltantes' %}Relatório de Faltantes{% else %}Relatório Completo{% endif %}
-  — {{ titulo }}
-{% endblock %}
-
-{% block extra_css %}
+{% extends 'base.html' %} {% block title %} {% if modo == 'faltantes'
+%}Relatório de Faltantes{% else %}Relatório Completo{% endif %} — {{ titulo }}
+{% endblock %} {% block extra_css %}
 <style>
   @media print {
-    .navbar, .sidebar, .btn-toolbar-top, footer, .no-print { display: none !important; }
-    .card { border: 1px solid #dee2e6 !important; box-shadow: none !important; }
-    .page-break { page-break-after: always; }
-    body { font-size: 12px; }
-    img.peca-thumb { max-width: 40px !important; max-height: 40px !important; }
+    .navbar,
+    .sidebar,
+    .btn-toolbar-top,
+    footer,
+    .no-print {
+      display: none !important;
+    }
+    .card {
+      border: 1px solid #dee2e6 !important;
+      box-shadow: none !important;
+    }
+    .page-break {
+      page-break-after: always;
+    }
+    body {
+      font-size: 12px;
+    }
+    img.peca-thumb {
+      max-width: 40px !important;
+      max-height: 40px !important;
+    }
   }
   .peca-thumb {
-    width: 48px; height: 48px;
+    width: 48px;
+    height: 48px;
     object-fit: contain;
     border-radius: 4px;
     background: #f8f9fa;
@@ -22,71 +35,94 @@
     padding: 2px;
   }
   .peca-thumb-placeholder {
-    width: 48px; height: 48px;
-    display: inline-flex; align-items: center; justify-content: center;
-    background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 4px;
-    color: #94a3b8; font-size: 18px;
+    width: 48px;
+    height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    color: #94a3b8;
+    font-size: 18px;
   }
-  .modo-badge-completo  { background: #2563eb; color: #fff; }
-  .modo-badge-faltantes { background: #dc2626; color: #fff; }
-  .table-pecas td, .table-pecas th { vertical-align: middle; }
+  .modo-badge-completo {
+    background: #2563eb;
+    color: #fff;
+  }
+  .modo-badge-faltantes {
+    background: #dc2626;
+    color: #fff;
+  }
+  .table-pecas td,
+  .table-pecas th {
+    vertical-align: middle;
+  }
 </style>
-{% endblock %}
-
-{% block content %}
-{# ── TOOLBAR ── #}
-<div class="btn-toolbar-top d-flex flex-wrap gap-2 align-items-center justify-content-between mb-4 no-print">
+{% endblock %} {% block content %} {# ── TOOLBAR ── #}
+<div
+  class="btn-toolbar-top d-flex flex-wrap gap-2 align-items-center justify-content-between mb-4 no-print"
+>
   <div>
     <h4 class="fw-bold mb-0">
       <i class="bi bi-file-earmark-text me-2"></i>{{ titulo }}
     </h4>
     <small class="text-muted">
       Modo:
-      <span class="badge {% if modo == 'faltantes' %}bg-danger{% else %}bg-primary{% endif %}">
-        {% if modo == 'faltantes' %}Somente Faltantes{% else %}Completo (todas as peças){% endif %}
+      <span
+        class="badge {% if modo == 'faltantes' %}bg-danger{% else %}bg-primary{% endif %}"
+      >
+        {% if modo == 'faltantes' %}Somente Faltantes{% else %}Completo (todas
+        as peças){% endif %}
       </span>
     </small>
   </div>
 
   <div class="d-flex flex-wrap gap-2">
-    {# ── Alternar modo ── #}
-    {% if tipo == 'kit' %}
-      {% if modo == 'completo' %}
-        <a href="{{ url_for('relatorio_kit_view', kit_id=unidade.id, modo='faltantes') }}"
-           class="btn btn-outline-danger btn-sm fw-semibold">
-          <i class="bi bi-exclamation-triangle me-1"></i>Ver apenas faltantes
-        </a>
-      {% else %}
-        <a href="{{ url_for('relatorio_kit_view', kit_id=unidade.id, modo='completo') }}"
-           class="btn btn-outline-primary btn-sm fw-semibold">
-          <i class="bi bi-list-check me-1"></i>Ver relatório completo
-        </a>
-      {% endif %}
+    {# ── Alternar modo ── #} {% if tipo == 'kit' %} {% if modo == 'completo' %}
+    <a
+      href="{{ url_for('relatorio_kit_view', kit_id=unidade.id, modo='faltantes') }}"
+      class="btn btn-outline-danger btn-sm fw-semibold"
+    >
+      <i class="bi bi-exclamation-triangle me-1"></i>Ver apenas faltantes
+    </a>
+    {% else %}
+    <a
+      href="{{ url_for('relatorio_kit_view', kit_id=unidade.id, modo='completo') }}"
+      class="btn btn-outline-primary btn-sm fw-semibold"
+    >
+      <i class="bi bi-list-check me-1"></i>Ver relatório completo
+    </a>
+    {% endif %} {% elif tipo == 'escola' %} {% if modo == 'completo' %}
+    <a
+      href="{{ url_for('relatorio_escola_view', nome_escola=nome_escola, modo='faltantes') }}"
+      class="btn btn-outline-danger btn-sm fw-semibold"
+    >
+      <i class="bi bi-exclamation-triangle me-1"></i>Ver apenas faltantes
+    </a>
+    {% else %}
+    <a
+      href="{{ url_for('relatorio_escola_view', nome_escola=nome_escola, modo='completo') }}"
+      class="btn btn-outline-primary btn-sm fw-semibold"
+    >
+      <i class="bi bi-list-check me-1"></i>Ver relatório completo
+    </a>
+    {% endif %} {% endif %} {# ── PDF ── #} {% if tipo == 'kit' %}
+    <a
+      href="{{ url_for('relatorio_kit_pdf', kit_id=unidade.id, modo=modo) }}"
+      class="btn btn-primary btn-sm fw-semibold"
+    >
+      <i class="bi bi-file-earmark-pdf me-1"></i>Baixar PDF ({{ 'Faltantes' if
+      modo == 'faltantes' else 'Completo' }})
+    </a>
     {% elif tipo == 'escola' %}
-      {% if modo == 'completo' %}
-        <a href="{{ url_for('relatorio_escola_view', nome_escola=nome_escola, modo='faltantes') }}"
-           class="btn btn-outline-danger btn-sm fw-semibold">
-          <i class="bi bi-exclamation-triangle me-1"></i>Ver apenas faltantes
-        </a>
-      {% else %}
-        <a href="{{ url_for('relatorio_escola_view', nome_escola=nome_escola, modo='completo') }}"
-           class="btn btn-outline-primary btn-sm fw-semibold">
-          <i class="bi bi-list-check me-1"></i>Ver relatório completo
-        </a>
-      {% endif %}
-    {% endif %}
-
-    {# ── PDF ── #}
-    {% if tipo == 'kit' %}
-      <a href="{{ url_for('relatorio_kit_pdf', kit_id=unidade.id, modo=modo) }}"
-         class="btn btn-primary btn-sm fw-semibold">
-        <i class="bi bi-file-earmark-pdf me-1"></i>Baixar PDF ({{ 'Faltantes' if modo == 'faltantes' else 'Completo' }})
-      </a>
-    {% elif tipo == 'escola' %}
-      <a href="{{ url_for('relatorio_escola_pdf', nome_escola=nome_escola, modo=modo) }}"
-         class="btn btn-primary btn-sm fw-semibold">
-        <i class="bi bi-file-earmark-pdf me-1"></i>Baixar PDF ({{ 'Faltantes' if modo == 'faltantes' else 'Completo' }})
-      </a>
+    <a
+      href="{{ url_for('relatorio_escola_pdf', nome_escola=nome_escola, modo=modo) }}"
+      class="btn btn-primary btn-sm fw-semibold"
+    >
+      <i class="bi bi-file-earmark-pdf me-1"></i>Baixar PDF ({{ 'Faltantes' if
+      modo == 'faltantes' else 'Completo' }})
+    </a>
     {% endif %}
 
     <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">
@@ -103,305 +139,365 @@
 <div class="d-none d-print-block mb-3">
   <h3>{{ titulo }}</h3>
   <p class="small text-muted mb-0">
-    Modo: {% if modo == 'faltantes' %}Somente Faltantes{% else %}Relatório Completo{% endif %} ·
-    Emitido em: {{ now.strftime('%d/%m/%Y às %H:%M') }}
+    Modo: {% if modo == 'faltantes' %}Somente Faltantes{% else %}Relatório
+    Completo{% endif %} · Emitido em: {{ now.strftime('%d/%m/%Y às %H:%M') }}
   </p>
-  <hr>
+  <hr />
 </div>
 
-{# ══════════════════════════════════════════════
-   TIPO: KIT ÚNICO
-══════════════════════════════════════════════ #}
-{% if tipo == 'kit' %}
-
-  {# ── Cabeçalho do kit ── #}
-  <div class="card p-4 mb-4">
-    <div class="row g-3">
-      <div class="col-md-3 text-center text-md-start">
-        <div class="fw-800 fs-2 {% if unidade.status_atual == 'Completo' %}text-success{% else %}text-danger{% endif %}">
-          {{ unidade.status_atual }}
-        </div>
-        <div class="small text-muted">Status atual</div>
+{# ══════════════════════════════════════════════ TIPO: KIT ÚNICO
+══════════════════════════════════════════════ #} {% if tipo == 'kit' %} {# ──
+Cabeçalho do kit ── #}
+<div class="card p-4 mb-4">
+  <div class="row g-3">
+    <div class="col-md-3 text-center text-md-start">
+      <div
+        class="fw-800 fs-2 {% if unidade.status_atual == 'Completo' %}text-success{% else %}text-danger{% endif %}"
+      >
+        {{ unidade.status_atual }}
       </div>
-      <div class="col-md-3 text-center">
-        {% if unidade.saude_percentual is not none %}
-        <div class="fw-800 fs-2 {% if unidade.saude_percentual >= 90 %}text-success{% elif unidade.saude_percentual >= 60 %}text-warning{% else %}text-danger{% endif %}">
-          {{ unidade.saude_percentual }}%
-        </div>
-        <div class="small text-muted">Saúde</div>
-        {% else %}
-        <div class="fw-800 fs-2 text-muted">—</div>
-        <div class="small text-muted">Saúde</div>
-        {% endif %}
-      </div>
-      <div class="col-md-3 text-center">
-        <div class="fw-bold">{{ unidade.modelo.nome if unidade.modelo else '—' }}</div>
-        <div class="small text-muted">Modelo</div>
-      </div>
-      <div class="col-md-3 text-center">
-        <div class="fw-bold">{{ unidade.escola }}</div>
-        <div class="small text-muted">Escola</div>
-      </div>
+      <div class="small text-muted">Status atual</div>
     </div>
-  </div>
-
-  {% if not conferencia %}
-  <div class="text-center py-5 text-muted">
-    <i class="bi bi-clock-history" style="font-size:3rem"></i>
-    <p class="mt-2">Nenhuma conferência registrada ainda.</p>
-  </div>
-
-  {% elif modo == 'faltantes' and not detalhes %}
-  <div class="alert alert-success d-flex align-items-center gap-2">
-    <i class="bi bi-check-circle-fill fs-4"></i>
-    <div>
-      <strong>Kit completo!</strong>
-      Nenhuma peça faltando na última conferência de
-      <strong>{{ conferencia.data_conferencia.strftime('%d/%m/%Y às %H:%M') }}</strong>
-      por {{ conferencia.responsavel or '—' }}.
-    </div>
-  </div>
-
-  {% else %}
-  <div class="card mb-3">
-    <div class="card-header bg-light py-2 px-3 d-flex justify-content-between align-items-center">
-      <div>
-        <strong>Última conferência</strong>
-        <span class="text-muted ms-2 small">{{ conferencia.data_conferencia.strftime('%d/%m/%Y às %H:%M') }}</span>
-        <small class="text-muted ms-1">por {{ conferencia.responsavel or '—' }}</small>
+    <div class="col-md-3 text-center">
+      {% if unidade.saude_percentual is not none %}
+      <div
+        class="fw-800 fs-2 {% if unidade.saude_percentual >= 90 %}text-success{% elif unidade.saude_percentual >= 60 %}text-warning{% else %}text-danger{% endif %}"
+      >
+        {{ unidade.saude_percentual }}%
       </div>
-      <span class="badge {% if conferencia.status_resultado == 'Completo' %}bg-success{% else %}bg-danger{% endif %}">
-        {{ conferencia.status_resultado or '—' }}
-      </span>
-    </div>
-    {% if conferencia.observacoes %}
-    <div class="px-3 pt-2 pb-0">
-      <small class="text-muted"><i class="bi bi-chat-left-text me-1"></i>{{ conferencia.observacoes }}</small>
-    </div>
-    {% endif %}
-    <div class="card-body p-0">
-      <div class="table-responsive">
-        <table class="table table-pecas table-sm align-middle mb-0">
-          <thead class="table-dark">
-            <tr>
-              <th style="width:60px" class="text-center">Foto</th>
-              <th>Peça</th>
-              <th class="text-muted small fw-normal" style="width:110px">Código</th>
-              <th class="text-center" style="width:80px">Esperado</th>
-              <th class="text-center" style="width:80px">Encontrado</th>
-              <th class="text-center" style="width:80px">Diferença</th>
-              <th style="width:90px">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for d in detalhes %}
-            {% set diff = d.quantidade_encontrada - d.quantidade_esperada_na_epoca %}
-            <tr class="{% if diff < 0 %}table-danger{% elif diff > 0 %}table-info{% endif %}">
-              <td class="text-center py-1">
-                {% if d.peca and d.peca.imagem_url and d.peca.imagem_url != 'sem-foto.png' %}
-                  <img src="{{ url_for('static', filename='uploads/' + d.peca.imagem_url) }}"
-                       class="peca-thumb"
-                       alt="{{ d.peca.nome }}"
-                       onerror="this.parentElement.innerHTML='<span class=\'peca-thumb-placeholder\'><i class=\'bi bi-image\'></i></span>'">
-                {% else %}
-                  <span class="peca-thumb-placeholder"><i class="bi bi-box"></i></span>
-                {% endif %}
-              </td>
-              <td>
-                <span class="fw-semibold small">{{ d.peca.nome if d.peca else '—' }}</span>
-                {% if d.observacao_peca %}
-                <small class="text-muted d-block"><i class="bi bi-chat-left-dots me-1"></i>{{ d.observacao_peca }}</small>
-                {% endif %}
-              </td>
-              <td><code class="small text-muted">{{ d.peca.codigo_lego if d.peca else '—' }}</code></td>
-              <td class="text-center fw-bold">{{ d.quantidade_esperada_na_epoca }}</td>
-              <td class="text-center fw-bold">{{ d.quantidade_encontrada }}</td>
-              <td class="text-center">
-                {% if diff < 0 %}
-                  <span class="fw-bold text-danger">{{ diff }}</span>
-                {% elif diff > 0 %}
-                  <span class="fw-bold text-info">+{{ diff }}</span>
-                {% else %}
-                  <span class="text-success">—</span>
-                {% endif %}
-              </td>
-              <td>
-                {% if diff < 0 %}
-                  <span class="badge bg-danger">Faltando</span>
-                {% elif diff > 0 %}
-                  <span class="badge bg-info text-dark">Excedente</span>
-                {% else %}
-                  <span class="badge bg-success">OK</span>
-                {% endif %}
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-          <tfoot class="table-light fw-bold">
-            <tr>
-              <td colspan="3">TOTAL</td>
-              {% set esp_t = namespace(v=0) %}
-              {% set enc_t = namespace(v=0) %}
-              {% for d in detalhes %}
-                {% set esp_t.v = esp_t.v + d.quantidade_esperada_na_epoca %}
-                {% set enc_t.v = enc_t.v + d.quantidade_encontrada %}
-              {% endfor %}
-              <td class="text-center">{{ esp_t.v }}</td>
-              <td class="text-center">{{ enc_t.v }}</td>
-              <td class="text-center">
-                {% set dt = enc_t.v - esp_t.v %}
-                {% if dt < 0 %}<span class="text-danger">{{ dt }}</span>
-                {% elif dt > 0 %}<span class="text-info">+{{ dt }}</span>
-                {% else %}—{% endif %}
-              </td>
-              <td></td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-    </div>
-  </div>
-  {% endif %}
-
-
-{# ══════════════════════════════════════════════
-   TIPO: ESCOLA (vários kits)
-══════════════════════════════════════════════ #}
-{% elif tipo == 'escola' %}
-
-  {% if not kits_dados %}
-  <div class="alert alert-{% if modo == 'faltantes' %}success{% else %}warning{% endif %}">
-    {% if modo == 'faltantes' %}
-      <i class="bi bi-check-circle-fill me-2"></i>
-      <strong>Nenhuma peça faltando</strong> nos kits desta escola nas últimas conferências.
-    {% else %}
-      Nenhum kit encontrado para esta escola.
-    {% endif %}
-  </div>
-
-  {% else %}
-    {# Resumo geral #}
-    {% set total_faltantes = namespace(v=0) %}
-    {% for kd in kits_dados %}
-      {% for d in kd.detalhes %}
-        {% if d.quantidade_encontrada < d.quantidade_esperada_na_epoca %}
-          {% set total_faltantes.v = total_faltantes.v + (d.quantidade_esperada_na_epoca - d.quantidade_encontrada) %}
-        {% endif %}
-      {% endfor %}
-    {% endfor %}
-
-    <div class="row g-3 mb-4">
-      <div class="col-6 col-md-3">
-        <div class="card stat-card p-3 text-center">
-          <div class="fw-800 fs-2">{{ kits_dados|length }}</div>
-          <div class="small text-muted">Kits no relatório</div>
-        </div>
-      </div>
-      {% if modo == 'faltantes' and total_faltantes.v > 0 %}
-      <div class="col-6 col-md-3">
-        <div class="card stat-card danger p-3 text-center">
-          <div class="fw-800 fs-2 text-danger">{{ total_faltantes.v }}</div>
-          <div class="small text-muted">Peças faltando (total)</div>
-        </div>
-      </div>
-      {% endif %}
-    </div>
-
-    {% for kd in kits_dados %}
-    <div class="card mb-4 {% if loop.index > 1 %}page-break{% endif %}">
-      {# Cabeçalho do kit #}
-      <div class="card-header d-flex justify-content-between align-items-center py-2 px-3 bg-light">
-        <div>
-          <strong class="me-2">{{ kd.unidade.identificador }}</strong>
-          {% if kd.unidade.modelo %}
-          <span class="badge bg-primary small">{{ kd.unidade.modelo.nome }}</span>
-          {% endif %}
-          {% if kd.conferencia %}
-          <small class="text-muted ms-2">
-            {{ kd.conferencia.data_conferencia.strftime('%d/%m/%Y') }}
-            · {{ kd.conferencia.responsavel or '—' }}
-          </small>
-          {% endif %}
-        </div>
-        <div class="d-flex align-items-center gap-2">
-          {% if kd.unidade.saude_percentual is not none %}
-          <span class="small fw-bold {% if kd.unidade.saude_percentual >= 90 %}text-success{% elif kd.unidade.saude_percentual >= 60 %}text-warning{% else %}text-danger{% endif %}">
-            {{ kd.unidade.saude_percentual }}%
-          </span>
-          {% endif %}
-          <span class="badge {% if kd.unidade.status_atual == 'Completo' %}bg-success{% elif kd.unidade.status_atual == 'Incompleto' %}bg-danger{% else %}bg-secondary{% endif %}">
-            {{ kd.unidade.status_atual }}
-          </span>
-          <a href="{{ url_for('relatorio_kit_view', kit_id=kd.unidade.id, modo=modo) }}"
-             class="btn btn-sm btn-outline-secondary no-print" title="Ver relatório deste kit">
-            <i class="bi bi-box-arrow-up-right"></i>
-          </a>
-        </div>
-      </div>
-
-      {# Tabela de peças #}
-      {% if not kd.conferencia %}
-      <div class="card-body text-muted small py-3">Sem conferência registrada.</div>
-      {% elif not kd.detalhes %}
-      <div class="card-body py-2">
-        <span class="text-success"><i class="bi bi-check-circle me-1"></i>Nenhuma peça faltando.</span>
-      </div>
+      <div class="small text-muted">Saúde</div>
       {% else %}
-      <div class="table-responsive">
-        <table class="table table-pecas table-sm align-middle mb-0">
-          <thead class="table-secondary">
-            <tr>
-              <th style="width:60px" class="text-center">Foto</th>
-              <th>Peça</th>
-              <th class="text-muted small fw-normal" style="width:110px">Código</th>
-              <th class="text-center" style="width:75px">Esp.</th>
-              <th class="text-center" style="width:75px">Enc.</th>
-              <th class="text-center" style="width:75px">Dif.</th>
-              <th style="width:85px">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for d in kd.detalhes|sort(attribute='quantidade_encontrada') %}
-            {% set diff = d.quantidade_encontrada - d.quantidade_esperada_na_epoca %}
-            <tr class="{% if diff < 0 %}table-danger{% elif diff > 0 %}table-info{% endif %}">
-              <td class="text-center py-1">
-                {% if d.peca and d.peca.imagem_url and d.peca.imagem_url != 'sem-foto.png' %}
-                  <img src="{{ url_for('static', filename='uploads/' + d.peca.imagem_url) }}"
-                       class="peca-thumb"
-                       alt="{{ d.peca.nome }}"
-                       onerror="this.parentElement.innerHTML='<span class=\'peca-thumb-placeholder\'><i class=\'bi bi-image\'></i></span>'">
-                {% else %}
-                  <span class="peca-thumb-placeholder"><i class="bi bi-box"></i></span>
-                {% endif %}
-              </td>
-              <td>
-                <span class="fw-semibold small">{{ d.peca.nome if d.peca else '—' }}</span>
-                {% if d.observacao_peca %}
-                <small class="text-muted d-block"><i class="bi bi-chat-left-dots me-1"></i>{{ d.observacao_peca }}</small>
-                {% endif %}
-              </td>
-              <td><code class="small text-muted">{{ d.peca.codigo_lego if d.peca else '—' }}</code></td>
-              <td class="text-center fw-bold">{{ d.quantidade_esperada_na_epoca }}</td>
-              <td class="text-center fw-bold">{{ d.quantidade_encontrada }}</td>
-              <td class="text-center">
-                {% if diff < 0 %}<span class="fw-bold text-danger">{{ diff }}</span>
-                {% elif diff > 0 %}<span class="fw-bold text-info">+{{ diff }}</span>
-                {% else %}<span class="text-success">—</span>{% endif %}
-              </td>
-              <td>
-                {% if diff < 0 %}<span class="badge bg-danger">Faltando</span>
-                {% elif diff > 0 %}<span class="badge bg-info text-dark">Excedente</span>
-                {% else %}<span class="badge bg-success">OK</span>{% endif %}
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+      <div class="fw-800 fs-2 text-muted">—</div>
+      <div class="small text-muted">Saúde</div>
       {% endif %}
     </div>
-    {% endfor %}
-  {% endif %}
-{% endif %}
+    <div class="col-md-3 text-center">
+      <div class="fw-bold">
+        {{ unidade.modelo.nome if unidade.modelo else '—' }}
+      </div>
+      <div class="small text-muted">Modelo</div>
+    </div>
+    <div class="col-md-3 text-center">
+      <div class="fw-bold">{{ unidade.escola }}</div>
+      <div class="small text-muted">Escola</div>
+    </div>
+  </div>
+</div>
 
-{% endblock %}
+{% if not conferencia %}
+<div class="text-center py-5 text-muted">
+  <i class="bi bi-clock-history" style="font-size: 3rem"></i>
+  <p class="mt-2">Nenhuma conferência registrada ainda.</p>
+</div>
+
+{% elif modo == 'faltantes' and not detalhes %}
+<div class="alert alert-success d-flex align-items-center gap-2">
+  <i class="bi bi-check-circle-fill fs-4"></i>
+  <div>
+    <strong>Kit completo!</strong>
+    Nenhuma peça faltando na última conferência de
+    <strong
+      >{{ conferencia.data_conferencia.strftime('%d/%m/%Y às %H:%M') }}</strong
+    >
+    por {{ conferencia.responsavel or '—' }}.
+  </div>
+</div>
+
+{% else %}
+<div class="card mb-3">
+  <div
+    class="card-header bg-light py-2 px-3 d-flex justify-content-between align-items-center"
+  >
+    <div>
+      <strong>Última conferência</strong>
+      <span class="text-muted ms-2 small"
+        >{{ conferencia.data_conferencia.strftime('%d/%m/%Y às %H:%M') }}</span
+      >
+      <small class="text-muted ms-1"
+        >por {{ conferencia.responsavel or '—' }}</small
+      >
+    </div>
+    <span
+      class="badge {% if conferencia.status_resultado == 'Completo' %}bg-success{% else %}bg-danger{% endif %}"
+    >
+      {{ conferencia.status_resultado or '—' }}
+    </span>
+  </div>
+  {% if conferencia.observacoes %}
+  <div class="px-3 pt-2 pb-0">
+    <small class="text-muted"
+      ><i class="bi bi-chat-left-text me-1"></i>{{ conferencia.observacoes
+      }}</small
+    >
+  </div>
+  {% endif %}
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-pecas table-sm align-middle mb-0">
+        <thead class="table-dark">
+          <tr>
+            <th style="width: 60px" class="text-center">Foto</th>
+            <th>Peça</th>
+            <th class="text-muted small fw-normal" style="width: 110px">
+              Código
+            </th>
+            <th class="text-center" style="width: 80px">Esperado</th>
+            <th class="text-center" style="width: 80px">Encontrado</th>
+            <th class="text-center" style="width: 80px">Diferença</th>
+            <th style="width: 90px">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in detalhes %} {% set diff = d.quantidade_encontrada -
+          d.quantidade_esperada_na_epoca %}
+          <tr
+            class="{% if diff < 0 %}table-danger{% elif diff > 0 %}table-info{% endif %}"
+          >
+            <td class="text-center py-1">
+              {% if d.peca and d.peca.imagem_url and d.peca.imagem_url !=
+              'sem-foto.png' %}
+              <img
+                src="{{ url_for('static', filename='uploads/' + d.peca.imagem_url) }}"
+                class="peca-thumb"
+                alt="{{ d.peca.nome }}"
+                onerror="
+                  this.parentElement.innerHTML =
+                    '<span class=\'peca-thumb-placeholder\'><i class=\'bi bi-image\'></i></span>'
+                "
+              />
+              {% else %}
+              <span class="peca-thumb-placeholder"
+                ><i class="bi bi-box"></i
+              ></span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="fw-semibold small"
+                >{{ d.peca.nome if d.peca else '—' }}</span
+              >
+              {% if d.observacao_peca %}
+              <small class="text-muted d-block"
+                ><i class="bi bi-chat-left-dots me-1"></i>{{ d.observacao_peca
+                }}</small
+              >
+              {% endif %}
+            </td>
+            <td>
+              <code class="small text-muted"
+                >{{ d.peca.codigo_lego if d.peca else '—' }}</code
+              >
+            </td>
+            <td class="text-center fw-bold">
+              {{ d.quantidade_esperada_na_epoca }}
+            </td>
+            <td class="text-center fw-bold">{{ d.quantidade_encontrada }}</td>
+            <td class="text-center">
+              {% if diff < 0 %}
+              <span class="fw-bold text-danger">{{ diff }}</span>
+              {% elif diff > 0 %}
+              <span class="fw-bold text-info">+{{ diff }}</span>
+              {% else %}
+              <span class="text-success">—</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if diff < 0 %}
+              <span class="badge bg-danger">Faltando</span>
+              {% elif diff > 0 %}
+              <span class="badge bg-info text-dark">Excedente</span>
+              {% else %}
+              <span class="badge bg-success">OK</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot class="table-light fw-bold">
+          <tr>
+            <td colspan="3">TOTAL</td>
+            {% set esp_t = namespace(v=0) %} {% set enc_t = namespace(v=0) %} {%
+            for d in detalhes %} {% set esp_t.v = esp_t.v +
+            d.quantidade_esperada_na_epoca %} {% set enc_t.v = enc_t.v +
+            d.quantidade_encontrada %} {% endfor %}
+            <td class="text-center">{{ esp_t.v }}</td>
+            <td class="text-center">{{ enc_t.v }}</td>
+            <td class="text-center">
+              {% set dt = enc_t.v - esp_t.v %} {% if dt < 0 %}<span
+                class="text-danger"
+                >{{ dt }}</span
+              >
+              {% elif dt > 0 %}<span class="text-info">+{{ dt }}</span>
+              {% else %}—{% endif %}
+            </td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %} {# ══════════════════════════════════════════════ TIPO: ESCOLA
+(vários kits) ══════════════════════════════════════════════ #} {% elif tipo ==
+'escola' %} {% if not kits_dados %}
+<div
+  class="alert alert-{% if modo == 'faltantes' %}success{% else %}warning{% endif %}"
+>
+  {% if modo == 'faltantes' %}
+  <i class="bi bi-check-circle-fill me-2"></i>
+  <strong>Nenhuma peça faltando</strong> nos kits desta escola nas últimas
+  conferências. {% else %} Nenhum kit encontrado para esta escola. {% endif %}
+</div>
+
+{% else %} {# Resumo geral #} {% set total_faltantes = namespace(v=0) %} {% for
+kd in kits_dados %} {% for d in kd.detalhes %} {% if d.quantidade_encontrada <
+d.quantidade_esperada_na_epoca %} {% set total_faltantes.v = total_faltantes.v +
+(d.quantidade_esperada_na_epoca - d.quantidade_encontrada) %} {% endif %} {%
+endfor %} {% endfor %}
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card stat-card p-3 text-center">
+      <div class="fw-800 fs-2">{{ kits_dados|length }}</div>
+      <div class="small text-muted">Kits no relatório</div>
+    </div>
+  </div>
+  {% if modo == 'faltantes' and total_faltantes.v > 0 %}
+  <div class="col-6 col-md-3">
+    <div class="card stat-card danger p-3 text-center">
+      <div class="fw-800 fs-2 text-danger">{{ total_faltantes.v }}</div>
+      <div class="small text-muted">Peças faltando (total)</div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+{% for kd in kits_dados %}
+<div class="card mb-4 {% if loop.index > 1 %}page-break{% endif %}">
+  {# Cabeçalho do kit #}
+  <div
+    class="card-header d-flex justify-content-between align-items-center py-2 px-3 bg-light"
+  >
+    <div>
+      <strong class="me-2">{{ kd.unidade.identificador }}</strong>
+      {% if kd.unidade.modelo %}
+      <span class="badge bg-primary small">{{ kd.unidade.modelo.nome }}</span>
+      {% endif %} {% if kd.conferencia %}
+      <small class="text-muted ms-2">
+        {{ kd.conferencia.data_conferencia.strftime('%d/%m/%Y') }} · {{
+        kd.conferencia.responsavel or '—' }}
+      </small>
+      {% endif %}
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      {% if kd.unidade.saude_percentual is not none %}
+      <span
+        class="small fw-bold {% if kd.unidade.saude_percentual >= 90 %}text-success{% elif kd.unidade.saude_percentual >= 60 %}text-warning{% else %}text-danger{% endif %}"
+      >
+        {{ kd.unidade.saude_percentual }}%
+      </span>
+      {% endif %}
+      <span
+        class="badge {% if kd.unidade.status_atual == 'Completo' %}bg-success{% elif kd.unidade.status_atual == 'Incompleto' %}bg-danger{% else %}bg-secondary{% endif %}"
+      >
+        {{ kd.unidade.status_atual }}
+      </span>
+      <a
+        href="{{ url_for('relatorio_kit_view', kit_id=kd.unidade.id, modo=modo) }}"
+        class="btn btn-sm btn-outline-secondary no-print"
+        title="Ver relatório deste kit"
+      >
+        <i class="bi bi-box-arrow-up-right"></i>
+      </a>
+    </div>
+  </div>
+
+  {# Tabela de peças #} {% if not kd.conferencia %}
+  <div class="card-body text-muted small py-3">Sem conferência registrada.</div>
+  {% elif not kd.detalhes %}
+  <div class="card-body py-2">
+    <span class="text-success"
+      ><i class="bi bi-check-circle me-1"></i>Nenhuma peça faltando.</span
+    >
+  </div>
+  {% else %}
+  <div class="table-responsive">
+    <table class="table table-pecas table-sm align-middle mb-0">
+      <thead class="table-secondary">
+        <tr>
+          <th style="width: 60px" class="text-center">Foto</th>
+          <th>Peça</th>
+          <th class="text-muted small fw-normal" style="width: 110px">
+            Código
+          </th>
+          <th class="text-center" style="width: 75px">Esp.</th>
+          <th class="text-center" style="width: 75px">Enc.</th>
+          <th class="text-center" style="width: 75px">Dif.</th>
+          <th style="width: 85px">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in kd.detalhes|sort(attribute='quantidade_encontrada') %} {%
+        set diff = d.quantidade_encontrada - d.quantidade_esperada_na_epoca %}
+        <tr
+          class="{% if diff < 0 %}table-danger{% elif diff > 0 %}table-info{% endif %}"
+        >
+          <td class="text-center py-1">
+            {% if d.peca and d.peca.imagem_url and d.peca.imagem_url !=
+            'sem-foto.png' %}
+            <img
+              src="{{ url_for('static', filename='uploads/' + d.peca.imagem_url) }}"
+              class="peca-thumb"
+              alt="{{ d.peca.nome }}"
+              onerror="
+                this.parentElement.innerHTML =
+                  '<span class=\'peca-thumb-placeholder\'><i class=\'bi bi-image\'></i></span>'
+              "
+            />
+            {% else %}
+            <span class="peca-thumb-placeholder"
+              ><i class="bi bi-box"></i
+            ></span>
+            {% endif %}
+          </td>
+          <td>
+            <span class="fw-semibold small"
+              >{{ d.peca.nome if d.peca else '—' }}</span
+            >
+            {% if d.observacao_peca %}
+            <small class="text-muted d-block"
+              ><i class="bi bi-chat-left-dots me-1"></i>{{ d.observacao_peca
+              }}</small
+            >
+            {% endif %}
+          </td>
+          <td>
+            <code class="small text-muted"
+              >{{ d.peca.codigo_lego if d.peca else '—' }}</code
+            >
+          </td>
+          <td class="text-center fw-bold">
+            {{ d.quantidade_esperada_na_epoca }}
+          </td>
+          <td class="text-center fw-bold">{{ d.quantidade_encontrada }}</td>
+          <td class="text-center">
+            {% if diff < 0 %}<span class="fw-bold text-danger">{{ diff }}</span>
+            {% elif diff > 0 %}<span class="fw-bold text-info"
+              >+{{ diff }}</span
+            >
+            {% else %}<span class="text-success">—</span>{% endif %}
+          </td>
+          <td>
+            {% if diff < 0 %}<span class="badge bg-danger">Faltando</span> {%
+            elif diff > 0 %}<span class="badge bg-info text-dark"
+              >Excedente</span
+            >
+            {% else %}<span class="badge bg-success">OK</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+{% endfor %} {% endif %} {% endif %} {% endblock %}

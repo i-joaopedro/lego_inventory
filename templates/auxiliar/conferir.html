@@ -1,35 +1,59 @@
-{% extends 'base.html' %}
-{% block title %}Conferir — {{ unidade.identificador }}{% endblock %}
-
-{% block extra_css %}
+{% extends 'base.html' %} {% block title %}Conferir — {{ unidade.identificador
+}}{% endblock %} {% block extra_css %}
 <style>
-  .peca-card { border-left: 4px solid #E2E8F0 !important; transition: border-color .2s; }
-  .peca-card.ok { border-left-color: #10B981 !important; }
-  .peca-card.falta { border-left-color: #EF4444 !important; }
-  .peca-card.extra { border-left-color: #3B82F6 !important; }
-  .obs-toggle { cursor: pointer; font-size: .8rem; }
-  .obs-area { display: none; }
-  .obs-area.show { display: block; }
+  .peca-card {
+    border-left: 4px solid #e2e8f0 !important;
+    transition: border-color 0.2s;
+  }
+  .peca-card.ok {
+    border-left-color: #10b981 !important;
+  }
+  .peca-card.falta {
+    border-left-color: #ef4444 !important;
+  }
+  .peca-card.extra {
+    border-left-color: #3b82f6 !important;
+  }
+  .obs-toggle {
+    cursor: pointer;
+    font-size: 0.8rem;
+  }
+  .obs-area {
+    display: none;
+  }
+  .obs-area.show {
+    display: block;
+  }
   .progress-sticky {
-    position: sticky; top: 60px; z-index: 100;
-    background: white; padding: .5rem 0; margin-bottom: .5rem;
+    position: sticky;
+    top: 60px;
+    z-index: 100;
+    background: white;
+    padding: 0.5rem 0;
+    margin-bottom: 0.5rem;
   }
 </style>
-{% endblock %}
-
-{% block content %}
+{% endblock %} {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
   <div>
     <h3 class="fw-800 mb-0">{{ unidade.identificador }}</h3>
     <span class="badge bg-primary">{{ unidade.modelo.nome }}</span>
-    <span class="text-muted small ms-2"><i class="bi bi-building me-1"></i>{{ unidade.escola }}</span>
+    <span class="text-muted small ms-2"
+      ><i class="bi bi-building me-1"></i>{{ unidade.escola }}</span
+    >
   </div>
   <div class="d-flex gap-2">
-    <button class="btn btn-outline-secondary btn-sm" onclick="zerarTudo()" title="Zerar tudo">
+    <button
+      class="btn btn-outline-secondary btn-sm"
+      onclick="zerarTudo()"
+      title="Zerar tudo"
+    >
       <i class="bi bi-arrow-counterclockwise"></i>
     </button>
-    <a href="{{ url_for('conferencias_auxiliar') if session.get('user_role') == 'auxiliar' else url_for('listar_unidades') }}"
-       class="btn btn-light btn-sm">
+    <a
+      href="{{ url_for('conferencias_auxiliar') if session.get('user_role') == 'auxiliar' else url_for('listar_unidades') }}"
+      class="btn btn-light btn-sm"
+    >
       <i class="bi bi-arrow-left me-1"></i>Voltar
     </a>
   </div>
@@ -41,8 +65,12 @@
     <small class="fw-semibold text-muted">Progresso da conferência</small>
     <small id="prog-texto" class="fw-bold text-muted"></small>
   </div>
-  <div class="progress" style="height:8px;border-radius:6px">
-    <div id="prog-bar" class="progress-bar bg-success" style="width:0%;border-radius:6px;transition:width .3s"></div>
+  <div class="progress" style="height: 8px; border-radius: 6px">
+    <div
+      id="prog-bar"
+      class="progress-bar bg-success"
+      style="width: 0%; border-radius: 6px; transition: width 0.3s"
+    ></div>
   </div>
 </div>
 
@@ -53,22 +81,32 @@
 </div>
 
 <form method="POST" id="form-conf">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
   <div class="row g-2 mb-3">
     {% for item in itens %}
     <div class="col-12">
-      <div class="card border-0 shadow-sm peca-card" id="card-{{ item.peca.id }}">
+      <div
+        class="card border-0 shadow-sm peca-card"
+        id="card-{{ item.peca.id }}"
+      >
         <div class="d-flex align-items-center p-2 gap-3">
-
           {# IMAGEM #}
-          <div class="flex-shrink-0 btn-zoom" style="cursor:zoom-in"
-               data-nome="{{ item.peca.nome }}"
-               data-codigo="{{ item.peca.codigo_lego }}"
-               data-url="{{ url_for('static', filename='uploads/' + item.peca.imagem_url) }}">
-            <img src="{{ url_for('static', filename='uploads/' + item.peca.imagem_url) }}"
-                 class="rounded" style="width:64px;height:64px;object-fit:cover"
-                 onerror="this.src='https://placehold.co/64x64/F1F5F9/94A3B8?text=LEGO'">
+          <div
+            class="flex-shrink-0 btn-zoom"
+            style="cursor: zoom-in"
+            data-nome="{{ item.peca.nome }}"
+            data-codigo="{{ item.peca.codigo_lego }}"
+            data-url="{{ url_for('static', filename='uploads/' + item.peca.imagem_url) }}"
+          >
+            <img
+              src="{{ url_for('static', filename='uploads/' + item.peca.imagem_url) }}"
+              class="rounded"
+              style="width: 64px; height: 64px; object-fit: cover"
+              onerror="
+                this.src = 'https://placehold.co/64x64/F1F5F9/94A3B8?text=LEGO'
+              "
+            />
           </div>
 
           {# INFO #}
@@ -76,43 +114,63 @@
             <h6 class="fw-bold mb-0 text-truncate">{{ item.peca.nome }}</h6>
             <small class="text-muted">
               <code>{{ item.peca.codigo_lego }}</code>
-              <span class="ms-2">Meta: <strong id="meta-{{ item.peca.id }}">{{ item.quantidade_esperada }}</strong></span>
+              <span class="ms-2"
+                >Meta:
+                <strong id="meta-{{ item.peca.id }}"
+                  >{{ item.quantidade_esperada }}</strong
+                ></span
+              >
             </small>
             <div class="obs-area mt-1" id="obs-area-{{ item.peca.id }}">
-              <input type="text"
-                     name="obs_{{ item.peca.id }}"
-                     class="form-control form-control-sm"
-                     placeholder="Obs: ex: peça quebrada, não perdida..."
-                     maxlength="200">
+              <input
+                type="text"
+                name="obs_{{ item.peca.id }}"
+                class="form-control form-control-sm"
+                placeholder="Obs: ex: peça quebrada, não perdida..."
+                maxlength="200"
+              />
             </div>
-            <span class="obs-toggle text-primary mt-1 d-inline-block"
-                  onclick="toggleObs('{{ item.peca.id }}')">
+            <span
+              class="obs-toggle text-primary mt-1 d-inline-block"
+              onclick="toggleObs('{{ item.peca.id }}')"
+            >
               <i class="bi bi-chat-left-dots me-1"></i>Adicionar observação
             </span>
           </div>
 
           {# CONTADOR #}
           <div class="flex-shrink-0 text-center">
-            <div class="input-group input-group-sm" style="width:110px">
-              <button type="button" class="btn btn-outline-secondary"
-                      onclick="alterar('{{ item.peca.id }}', -1)">
+            <div class="input-group input-group-sm" style="width: 110px">
+              <button
+                type="button"
+                class="btn btn-outline-secondary"
+                onclick="alterar('{{ item.peca.id }}', -1)"
+              >
                 <i class="bi bi-dash"></i>
               </button>
-              <input type="number"
-                     name="peca_{{ item.peca.id }}"
-                     id="input-{{ item.peca.id }}"
-                     value="{{ item.quantidade_esperada }}"
-                     min="0" max="9999"
-                     class="form-control text-center fw-bold"
-                     oninput="validar('{{ item.peca.id }}')">
-              <button type="button" class="btn btn-outline-secondary"
-                      onclick="alterar('{{ item.peca.id }}', 1)">
+              <input
+                type="number"
+                name="peca_{{ item.peca.id }}"
+                id="input-{{ item.peca.id }}"
+                value="{{ item.quantidade_esperada }}"
+                min="0"
+                max="9999"
+                class="form-control text-center fw-bold"
+                oninput="validar('{{ item.peca.id }}')"
+              />
+              <button
+                type="button"
+                class="btn btn-outline-secondary"
+                onclick="alterar('{{ item.peca.id }}', 1)"
+              >
                 <i class="bi bi-plus"></i>
               </button>
             </div>
-            <small id="status-txt-{{ item.peca.id }}" class="fw-semibold mt-1 d-block"></small>
+            <small
+              id="status-txt-{{ item.peca.id }}"
+              class="fw-semibold mt-1 d-block"
+            ></small>
           </div>
-
         </div>
       </div>
     </div>
@@ -124,8 +182,12 @@
     <label class="form-label fw-semibold">
       <i class="bi bi-chat-text me-1 text-primary"></i>Observações Gerais
     </label>
-    <textarea name="observacoes" class="form-control" rows="2"
-              placeholder="Ex: caixa com amassado, cabos oxidados..."></textarea>
+    <textarea
+      name="observacoes"
+      class="form-control"
+      rows="2"
+      placeholder="Ex: caixa com amassado, cabos oxidados..."
+    ></textarea>
   </div>
 
   {# RESUMO + SUBMIT #}
@@ -140,8 +202,13 @@
   </div>
 
   <div class="d-grid mb-4">
-    <button type="submit" name="status_geral" id="btn-submit"
-            value="Completo" class="btn btn-primary btn-lg fw-bold">
+    <button
+      type="submit"
+      name="status_geral"
+      id="btn-submit"
+      value="Completo"
+      class="btn btn-primary btn-lg fw-bold"
+    >
       <i class="bi bi-check-circle me-2"></i>Salvar Conferência
     </button>
   </div>
@@ -153,93 +220,100 @@
     <div class="modal-content border-0 shadow">
       <div class="modal-header border-0">
         <h5 class="fw-800 mb-0" id="zNome"></h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
       </div>
       <div class="modal-body text-center p-4">
-        <img src="" id="zImg" class="img-fluid rounded shadow-sm mb-3" style="max-height:300px">
+        <img
+          src=""
+          id="zImg"
+          class="img-fluid rounded shadow-sm mb-3"
+          style="max-height: 300px"
+        />
         <div id="zCod" class="badge bg-primary fs-6 px-3"></div>
       </div>
     </div>
   </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
+{% endblock %} {% block extra_js %}
 <script>
-const itens = [
-  {% for item in itens %}
-  { id: '{{ item.peca.id }}', meta: {{ item.quantidade_esperada }} },
-  {% endfor %}
-];
+  const itens = [
+    {% for item in itens %}
+    { id: '{{ item.peca.id }}', meta: {{ item.quantidade_esperada }} },
+    {% endfor %}
+  ];
 
-function alterar(id, delta) {
-  const inp = document.getElementById('input-' + id);
-  inp.value = Math.max(0, (parseInt(inp.value) || 0) + delta);
-  validar(id);
-}
-
-function validar(id) {
-  const v   = parseInt(document.getElementById('input-' + id).value) || 0;
-  const m   = parseInt(document.getElementById('meta-' + id).innerText);
-  const card = document.getElementById('card-' + id);
-  const txt  = document.getElementById('status-txt-' + id);
-
-  card.classList.remove('ok', 'falta', 'extra');
-  if (v === m)    { card.classList.add('ok');    txt.textContent = '✓ OK';           txt.className = 'fw-semibold text-success small d-block mt-1'; }
-  else if (v < m) { card.classList.add('falta'); txt.textContent = `Falta ${m-v}`;  txt.className = 'fw-semibold text-danger small d-block mt-1'; }
-  else            { card.classList.add('extra'); txt.textContent = `+${v-m} extra`; txt.className = 'fw-semibold text-info small d-block mt-1'; }
-
-  atualizarResumo();
-}
-
-function atualizarResumo() {
-  let ok = 0, faltando = 0, total = itens.length;
-  itens.forEach(item => {
-    const v = parseInt(document.getElementById('input-' + item.id).value) || 0;
-    if (v >= item.meta) ok++; else faltando++;
-  });
-  const pct = total ? Math.round(ok / total * 100) : 0;
-
-  document.getElementById('resumo-texto').textContent = `${ok}/${total} peças OK`;
-  document.getElementById('prog-bar').style.width = pct + '%';
-  document.getElementById('prog-texto').textContent = pct + '%';
-
-  const btn   = document.getElementById('btn-submit');
-  const badge = document.getElementById('status-geral-badge');
-  if (faltando === 0) {
-    btn.value = 'Completo'; btn.className = 'btn btn-success btn-lg fw-bold';
-    btn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Salvar — COMPLETO ✓';
-    badge.innerHTML = '<span class="badge badge-status-completo px-3 py-2 fs-6">COMPLETO</span>';
-    document.getElementById('prog-bar').className = 'progress-bar bg-success';
-  } else {
-    btn.value = 'Incompleto'; btn.className = 'btn btn-danger btn-lg fw-bold';
-    btn.innerHTML = `<i class="bi bi-exclamation-triangle me-2"></i>Salvar — INCOMPLETO (${faltando} peça${faltando>1?'s':''} faltando)`;
-    badge.innerHTML = `<span class="badge badge-status-incompleto px-3 py-2 fs-6">INCOMPLETO</span>`;
-    document.getElementById('prog-bar').className = 'progress-bar bg-danger';
+  function alterar(id, delta) {
+    const inp = document.getElementById('input-' + id);
+    inp.value = Math.max(0, (parseInt(inp.value) || 0) + delta);
+    validar(id);
   }
-}
 
-function toggleObs(id) {
-  const area = document.getElementById('obs-area-' + id);
-  area.classList.toggle('show');
-  if (area.classList.contains('show')) area.querySelector('input').focus();
-}
+  function validar(id) {
+    const v   = parseInt(document.getElementById('input-' + id).value) || 0;
+    const m   = parseInt(document.getElementById('meta-' + id).innerText);
+    const card = document.getElementById('card-' + id);
+    const txt  = document.getElementById('status-txt-' + id);
 
-function zerarTudo() {
-  if (!confirm('Zerar todas as quantidades para 0?')) return;
-  itens.forEach(item => { document.getElementById('input-' + item.id).value = 0; validar(item.id); });
-}
+    card.classList.remove('ok', 'falta', 'extra');
+    if (v === m)    { card.classList.add('ok');    txt.textContent = '✓ OK';           txt.className = 'fw-semibold text-success small d-block mt-1'; }
+    else if (v < m) { card.classList.add('falta'); txt.textContent = `Falta ${m-v}`;  txt.className = 'fw-semibold text-danger small d-block mt-1'; }
+    else            { card.classList.add('extra'); txt.textContent = `+${v-m} extra`; txt.className = 'fw-semibold text-info small d-block mt-1'; }
 
-// Zoom modal
-document.querySelectorAll('.btn-zoom').forEach(el => {
-  el.addEventListener('click', function() {
-    document.getElementById('zNome').innerText = this.dataset.nome;
-    document.getElementById('zCod').innerText = 'Código: ' + this.dataset.codigo;
-    document.getElementById('zImg').src = this.dataset.url;
-    new bootstrap.Modal(document.getElementById('zoomModal')).show();
+    atualizarResumo();
+  }
+
+  function atualizarResumo() {
+    let ok = 0, faltando = 0, total = itens.length;
+    itens.forEach(item => {
+      const v = parseInt(document.getElementById('input-' + item.id).value) || 0;
+      if (v >= item.meta) ok++; else faltando++;
+    });
+    const pct = total ? Math.round(ok / total * 100) : 0;
+
+    document.getElementById('resumo-texto').textContent = `${ok}/${total} peças OK`;
+    document.getElementById('prog-bar').style.width = pct + '%';
+    document.getElementById('prog-texto').textContent = pct + '%';
+
+    const btn   = document.getElementById('btn-submit');
+    const badge = document.getElementById('status-geral-badge');
+    if (faltando === 0) {
+      btn.value = 'Completo'; btn.className = 'btn btn-success btn-lg fw-bold';
+      btn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Salvar — COMPLETO ✓';
+      badge.innerHTML = '<span class="badge badge-status-completo px-3 py-2 fs-6">COMPLETO</span>';
+      document.getElementById('prog-bar').className = 'progress-bar bg-success';
+    } else {
+      btn.value = 'Incompleto'; btn.className = 'btn btn-danger btn-lg fw-bold';
+      btn.innerHTML = `<i class="bi bi-exclamation-triangle me-2"></i>Salvar — INCOMPLETO (${faltando} peça${faltando>1?'s':''} faltando)`;
+      badge.innerHTML = `<span class="badge badge-status-incompleto px-3 py-2 fs-6">INCOMPLETO</span>`;
+      document.getElementById('prog-bar').className = 'progress-bar bg-danger';
+    }
+  }
+
+  function toggleObs(id) {
+    const area = document.getElementById('obs-area-' + id);
+    area.classList.toggle('show');
+    if (area.classList.contains('show')) area.querySelector('input').focus();
+  }
+
+  function zerarTudo() {
+    if (!confirm('Zerar todas as quantidades para 0?')) return;
+    itens.forEach(item => { document.getElementById('input-' + item.id).value = 0; validar(item.id); });
+  }
+
+  // Zoom modal
+  document.querySelectorAll('.btn-zoom').forEach(el => {
+    el.addEventListener('click', function() {
+      document.getElementById('zNome').innerText = this.dataset.nome;
+      document.getElementById('zCod').innerText = 'Código: ' + this.dataset.codigo;
+      document.getElementById('zImg').src = this.dataset.url;
+      new bootstrap.Modal(document.getElementById('zoomModal')).show();
+    });
   });
-});
 
-window.addEventListener('load', () => itens.forEach(item => validar(item.id)));
+  window.addEventListener('load', () => itens.forEach(item => validar(item.id)));
 </script>
 {% endblock %}

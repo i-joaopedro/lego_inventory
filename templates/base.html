@@ -1,490 +1,766 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Sistema de Inventário LEGO Educacional">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Sistema de Inventário LEGO Educacional" />
     <title>{% block title %}LEGO Inventory{% endblock %}</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap"
+      rel="stylesheet"
+    />
 
     <style>
-        :root {
-            --primary: #2563EB;
-            --primary-dark: #1d4ed8;
-            --success: #10B981;
-            --danger: #EF4444;
-            --warning: #F59E0B;
-            --bg: #F1F5F9;
-            --card-bg: #ffffff;
-            --text: #1E293B;
-            --muted: #64748B;
-            --border: #E2E8F0;
+      :root {
+        --primary: #2563eb;
+        --primary-dark: #1d4ed8;
+        --success: #10b981;
+        --danger: #ef4444;
+        --warning: #f59e0b;
+        --bg: #f1f5f9;
+        --card-bg: #ffffff;
+        --text: #1e293b;
+        --muted: #64748b;
+        --border: #e2e8f0;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+      }
+
+      /* NAVBAR */
+      .navbar {
+        background: #0f172a !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        padding: 0.6rem 0;
+      }
+      .navbar-brand {
+        font-weight: 800;
+        font-size: 1.1rem;
+        letter-spacing: -0.5px;
+      }
+      .nav-link {
+        font-weight: 500;
+        font-size: 0.875rem;
+        border-radius: 6px;
+        padding: 0.35rem 0.7rem !important;
+        transition: background 0.15s;
+      }
+      .nav-link:hover {
+        background: rgba(255, 255, 255, 0.08);
+      }
+      .nav-link.active {
+        background: var(--primary);
+      }
+
+      .card {
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+        background: var(--card-bg);
+      }
+      .card:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      }
+
+      .btn {
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.875rem;
+      }
+      .btn-primary {
+        background: var(--primary);
+        border-color: var(--primary);
+      }
+      .btn-primary:hover {
+        background: var(--primary-dark);
+        border-color: var(--primary-dark);
+      }
+
+      .stat-card {
+        border-left: 4px solid var(--primary);
+      }
+      .stat-card.danger {
+        border-left-color: var(--danger);
+      }
+      .stat-card.success {
+        border-left-color: var(--success);
+      }
+      .stat-card.warning {
+        border-left-color: var(--warning);
+      }
+
+      .badge-status-completo {
+        background: #d1fae5;
+        color: #065f46;
+      }
+      .badge-status-incompleto {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+      .badge-status-pendente {
+        background: #fef3c7;
+        color: #92400e;
+      }
+
+      .badge-admin {
+        background: #fecdd3;
+        color: #9f1239;
+      }
+      .badge-pedagogo {
+        background: #fde68a;
+        color: #78350f;
+      }
+      .badge-auxiliar {
+        background: #bbf7d0;
+        color: #14532d;
+      }
+
+      .table th {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--muted);
+      }
+      .table td {
+        vertical-align: middle;
+      }
+
+      .alert {
+        border: none;
+        border-radius: 10px;
+        font-size: 0.875rem;
+      }
+
+      footer {
+        font-size: 0.78rem;
+        color: var(--muted);
+      }
+
+      @media print {
+        .no-print {
+          display: none !important;
         }
+      }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-        }
-
-        /* NAVBAR */
-        .navbar {
-            background: #0F172A !important;
-            border-bottom: 1px solid rgba(255,255,255,0.07);
-            padding: 0.6rem 0;
-        }
-        .navbar-brand {
-            font-weight: 800;
-            font-size: 1.1rem;
-            letter-spacing: -0.5px;
-        }
-        .nav-link {
-            font-weight: 500;
-            font-size: 0.875rem;
-            border-radius: 6px;
-            padding: 0.35rem 0.7rem !important;
-            transition: background 0.15s;
-        }
-        .nav-link:hover { background: rgba(255,255,255,0.08); }
-        .nav-link.active { background: var(--primary); }
-
-        /* CARDS */
-        .card {
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-            transition: transform 0.2s, box-shadow 0.2s;
-            background: var(--card-bg);
-        }
-        .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.10); }
-
-        /* BOTÕES */
-        .btn { border-radius: 8px; font-weight: 600; font-size: 0.875rem; }
-        .btn-primary { background: var(--primary); border-color: var(--primary); }
-        .btn-primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
-
-        /* STAT CARD */
-        .stat-card { border-left: 4px solid var(--primary); }
-        .stat-card.danger { border-left-color: var(--danger); }
-        .stat-card.success { border-left-color: var(--success); }
-        .stat-card.warning { border-left-color: var(--warning); }
-
-        /* BADGES DE STATUS */
-        .badge-status-completo { background: #D1FAE5; color: #065F46; }
-        .badge-status-incompleto { background: #FEE2E2; color: #991B1B; }
-        .badge-status-pendente { background: #FEF3C7; color: #92400E; }
-
-        /* ROLE BADGE */
-        .badge-admin { background: #FECDD3; color: #9F1239; }
-        .badge-pedagogo { background: #FDE68A; color: #78350F; }
-        .badge-auxiliar { background: #BBF7D0; color: #14532D; }
-
-        /* TABELAS */
-        .table th { font-size: 0.75rem; text-transform: uppercase;
-                    letter-spacing: 0.05em; color: var(--muted); }
-        .table td { vertical-align: middle; }
-
-        /* ALERTA TOAST */
-        .alert { border: none; border-radius: 10px; font-size: 0.875rem; }
-
-        /* FOOTER */
-        footer { font-size: 0.78rem; color: var(--muted); }
-
-        @media print { .no-print { display: none !important; } }
-
-        /* FW-800 util */
-        .fw-800 { font-weight: 800; }
+      .fw-800 {
+        font-weight: 800;
+      }
     </style>
 
     {% block extra_css %}{% endblock %}
-</head>
-<body>
-
-{# ── NAVBAR ── #}
-<nav class="navbar navbar-expand-lg navbar-dark no-print">
-    <div class="container-fluid px-4">
+  </head>
+  <body>
+    {# ── NAVBAR ── #}
+    <nav class="navbar navbar-expand-lg navbar-dark no-print">
+      <div class="container-fluid px-4">
         <a class="navbar-brand text-white" href="{{ url_for('index') }}">
-            <i class="bi bi-robot text-primary me-2"></i>LEGO<span class="text-primary">INV</span>
+          <i class="bi bi-robot text-primary me-2"></i>LEGO<span
+            class="text-primary"
+            >INV</span
+          >
         </a>
 
-        <button class="navbar-toggler border-0" type="button"
-                data-bs-toggle="collapse" data-bs-target="#navbarMain">
-            <span class="navbar-toggler-icon"></span>
+        <button
+          class="navbar-toggler border-0"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarMain"
+        >
+          <span class="navbar-toggler-icon"></span>
         </button>
 
         <div class="collapse navbar-collapse" id="navbarMain">
-            <ul class="navbar-nav me-auto gap-1">
-
-                {# ── ADMIN ── #}
-                {% if session.get('user_role') == 'admin' %}
-                <li class="nav-item">
-                    <a class="nav-link text-white {% if request.endpoint == 'dashboard' %}active{% endif %}"
-                       href="{{ url_for('dashboard') }}">
-                        <i class="bi bi-speedometer2 me-1"></i>Dashboard
-                    </a>
-                </li>
-                {% endif %}
-
-                {% if session.get('user_role') == 'admin' %}
-                <li class="nav-item dropdown">
-                    <a class="nav-link text-white dropdown-toggle
-                       {% if request.endpoint in ['lista_escolas','nova_escola','editar_escola','detalhe_escola'] %}active{% endif %}"
-                       href="#" data-bs-toggle="dropdown">
-                        <i class="bi bi-building me-1"></i>Escolas
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-dark border-0 shadow">
-                        <li><a class="dropdown-item" href="{{ url_for('lista_escolas') }}">
-                            <i class="bi bi-list-ul me-2"></i>Ver Escolas
-                        </a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('nova_escola') }}">
-                            <i class="bi bi-plus-circle me-2"></i>Nova Escola
-                        </a></li>
-                    </ul>
-                </li>
-                {% endif %}
-
-                {% if session.get('user_role') in ['admin', 'auxiliar'] %}
-                <li class="nav-item dropdown">
-                    <a class="nav-link text-white dropdown-toggle
-                       {% if request.endpoint in ['listar_unidades','nova_unidade','listar_modelos','novo_modelo'] %}active{% endif %}"
-                       href="#" data-bs-toggle="dropdown">
-                        <i class="bi bi-box-seam me-1"></i>Kits
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-dark border-0 shadow">
-                        {% if session.get('user_role') == 'admin' %}
-                        <li><a class="dropdown-item" href="{{ url_for('listar_unidades') }}">
-                            <i class="bi bi-list-ul me-2"></i>Unidades Físicas
-                        </a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('nova_unidade') }}">
-                            <i class="bi bi-plus-circle me-2"></i>Nova Unidade
-                        </a></li>
-                        <li><hr class="dropdown-divider border-secondary"></li>
-                        {% endif %}
-                        <li><a class="dropdown-item" href="{{ url_for('listar_modelos') }}">
-                            <i class="bi bi-layers me-2"></i>Modelos de Kit
-                        </a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('novo_modelo') }}">
-                            <i class="bi bi-plus-circle me-2"></i>Novo Modelo
-                        </a></li>
-                    </ul>
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link text-white dropdown-toggle
-                       {% if request.endpoint in ['listar_pecas','nova_peca'] %}active{% endif %}"
-                       href="#" data-bs-toggle="dropdown">
-                        <i class="bi bi-puzzle me-1"></i>Peças
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-dark border-0 shadow">
-                        <li><a class="dropdown-item" href="{{ url_for('listar_pecas') }}">
-                            <i class="bi bi-list-ul me-2"></i>Catálogo de Peças
-                        </a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('nova_peca') }}">
-                            <i class="bi bi-plus-circle me-2"></i>Nova Peça
-                        </a></li>
-                    </ul>
-                </li>
-                {% endif %}
-
-                {# ── ADMIN ONLY ── #}
-                {% if session.get('user_role') == 'admin' %}
-                <li class="nav-item dropdown">
-                    <a class="nav-link text-white dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                        <i class="bi bi-gear-fill me-1"></i>Admin
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-dark border-0 shadow">
-                        <li><a class="dropdown-item" href="{{ url_for('gerenciar_usuarios') }}">
-                            <i class="bi bi-people me-2"></i>Gerenciar Equipe
-                        </a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('comparar_kits') }}">
-                            <i class="bi bi-bar-chart-line me-2"></i>Comparar Kits
-                        </a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('etiquetas_admin') }}">
-                            <i class="bi bi-qr-code me-2"></i>Etiquetas QR
-                        </a></li>
-                        <li><hr class="dropdown-divider border-secondary"></li>
-                        <li class="dropdown-header text-uppercase small text-muted px-3">Relatórios</li>
-                        <li><a class="dropdown-item" href="{{ url_for('relatorio_geral_pdf', modo='completo') }}">
-                            <i class="bi bi-file-earmark-pdf me-2 text-primary"></i>PDF Completo (todos os kits)
-                        </a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('relatorio_geral_pdf', modo='faltantes') }}">
-                            <i class="bi bi-file-earmark-pdf me-2 text-danger"></i>PDF Somente Faltantes
-                        </a></li>
-                        <li><hr class="dropdown-divider border-secondary"></li>
-                        <li><a class="dropdown-item" href="{{ url_for('api_tokens') }}">
-                            <i class="bi bi-braces-asterisk me-2"></i>API / Integrações
-                        </a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('conferencias_pendentes') }}">
-                            <i class="bi bi-clock-history me-2"></i>Conferências Pendentes
-                        </a></li>
-                    </ul>
-                </li>
-                {% endif %}
-
-                {# ── PEDAGOGO ── #}
-                {% if session.get('user_role') == 'pedagogo' %}
-                <li class="nav-item">
-                    <a class="nav-link text-white {% if request.endpoint == 'dashboard_pedagogo' %}active{% endif %}"
-                       href="{{ url_for('dashboard_pedagogo') }}">
-                        <i class="bi bi-speedometer2 me-1"></i>Dashboard
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white {% if request.endpoint == 'lista_escolas' %}active{% endif %}"
-                       href="{{ url_for('lista_escolas') }}">
-                        <i class="bi bi-building me-1"></i>Escolas
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white {% if request.endpoint == 'listar_unidades' %}active{% endif %}"
-                       href="{{ url_for('listar_unidades') }}">
-                        <i class="bi bi-box-seam me-1"></i>Kits
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white {% if request.endpoint == 'comparar_kits' %}active{% endif %}"
-                       href="{{ url_for('comparar_kits') }}">
-                        <i class="bi bi-bar-chart-line me-1"></i>Comparar
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white {% if request.endpoint == 'listar_pecas' %}active{% endif %}"
-                       href="{{ url_for('listar_pecas') }}">
-                        <i class="bi bi-puzzle me-1"></i>Peças
-                    </a>
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link text-white dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                        <i class="bi bi-file-earmark-pdf me-1"></i>Relatórios
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="{{ url_for('relatorio_geral_pdf', modo='completo') }}">
-                            <i class="bi bi-list-check me-2 text-primary"></i>PDF Completo
-                        </a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('relatorio_geral_pdf', modo='faltantes') }}">
-                            <i class="bi bi-exclamation-triangle me-2 text-danger"></i>PDF Somente Faltantes
-                        </a></li>
-                    </ul>
-                </li>
-                {% endif %}
-
-                {# AUXILIAR #}
-                {% if session.get('user_role') == 'auxiliar' %}
-                <li class="nav-item">
-                    <a class="nav-link text-white {% if request.endpoint == 'dashboard_auxiliar' %}active{% endif %}"
-                       href="{{ url_for('dashboard_auxiliar') }}">
-                        <i class="bi bi-house-door me-1"></i>Início
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white {% if request.endpoint == 'conferencias_auxiliar' %}active{% endif %}"
-                       href="{{ url_for('conferencias_auxiliar') }}">
-                        <i class="bi bi-clipboard-check me-1"></i>Conferências
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white {% if request.endpoint == 'comparar_kits' %}active{% endif %}"
-                       href="{{ url_for('comparar_kits') }}">
-                        <i class="bi bi-bar-chart-line me-1"></i>Comparar
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="{{ url_for('etiquetas_auxiliar') }}">
-                        <i class="bi bi-qr-code me-1"></i>Etiquetas
-                    </a>
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link text-white dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                        <i class="bi bi-file-earmark-pdf me-1"></i>Relatórios
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item"
-                               href="{{ url_for('relatorio_escola_view', nome_escola=session.get('user_escola', ''), modo='completo') }}">
-                            <i class="bi bi-list-check me-2 text-primary"></i>Ver relatório completo
-                        </a></li>
-                        <li><a class="dropdown-item"
-                               href="{{ url_for('relatorio_escola_view', nome_escola=session.get('user_escola', ''), modo='faltantes') }}">
-                            <i class="bi bi-exclamation-triangle me-2 text-danger"></i>Ver faltantes
-                        </a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item"
-                               href="{{ url_for('relatorio_escola_pdf', nome_escola=session.get('user_escola', ''), modo='completo') }}">
-                            <i class="bi bi-file-earmark-pdf me-2 text-primary"></i>PDF completo
-                        </a></li>
-                        <li><a class="dropdown-item"
-                               href="{{ url_for('relatorio_escola_pdf', nome_escola=session.get('user_escola', ''), modo='faltantes') }}">
-                            <i class="bi bi-file-earmark-pdf me-2 text-danger"></i>PDF faltantes
-                        </a></li>
-                    </ul>
-                </li>
-                {% endif %}
-
-            </ul>
-
-            {# ── PERFIL + BUSCA ── #}
-            {% if session.get('user_id') %}
-            <div class="d-flex align-items-center gap-2">
-
-              {# BUSCA GLOBAL #}
-              <div class="position-relative d-none d-lg-block" style="width:220px">
-                <input type="text" id="globalSearch" class="form-control form-control-sm bg-dark text-white border-secondary"
-                       placeholder="🔍 Buscar kit, peça, escola..." autocomplete="off"
-                       style="padding-right:2rem">
-                <div id="searchResults" class="dropdown-menu dropdown-menu-dark w-100 p-0 shadow"
-                     style="display:none;max-height:360px;overflow-y:auto;font-size:.85rem"></div>
-              </div>
-
-              {# SCAN QR #}
-              <a href="{{ url_for('scan_qr') }}"
-                 class="btn btn-sm btn-outline-secondary text-white border-secondary"
-                 title="Scan QR Code">
-                <i class="bi bi-qr-code-scan"></i>
+          <ul class="navbar-nav me-auto gap-1">
+            {# ── ADMIN ── #} {% if session.get('user_role') == 'admin' %}
+            <li class="nav-item">
+              <a
+                class="nav-link text-white {% if request.endpoint == 'dashboard' %}active{% endif %}"
+                href="{{ url_for('dashboard') }}"
+              >
+                <i class="bi bi-speedometer2 me-1"></i>Dashboard
               </a>
-
-              {# PENDENTES — só admin/pedagogo/auxiliar #}
-              <a href="{{ url_for('conferencias_pendentes') }}"
-                 class="btn btn-sm btn-outline-warning text-warning border-warning d-none d-md-inline-flex"
-                 title="Conferências pendentes">
-                <i class="bi bi-clock-history"></i>
+            </li>
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link text-white dropdown-toggle {% if request.endpoint in ['lista_escolas','nova_escola','editar_escola','detalhe_escola'] %}active{% endif %}"
+                href="#"
+                data-bs-toggle="dropdown"
+              >
+                <i class="bi bi-building me-1"></i>Escolas
               </a>
-
-              <span class="badge {% if session['user_role'] == 'admin' %}badge-admin
-                             {% elif session['user_role'] == 'pedagogo' %}badge-pedagogo
-                             {% else %}badge-auxiliar{% endif %} px-2 py-1 d-none d-xl-inline">
-                <i class="bi bi-person-fill me-1"></i>{{ session['username'] }}
-                <span class="opacity-75">({{ session['user_role']|capitalize }})</span>
-              </span>
-              <a href="{{ url_for('trocar_senha') }}"
-                 class="btn btn-sm btn-outline-secondary text-white border-secondary">
-                <i class="bi bi-key"></i>
+              <ul class="dropdown-menu dropdown-menu-dark border-0 shadow">
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{{ url_for('lista_escolas') }}"
+                  >
+                    <i class="bi bi-list-ul me-2"></i>Ver Escolas
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('nova_escola') }}">
+                    <i class="bi bi-plus-circle me-2"></i>Nova Escola
+                  </a>
+                </li>
+              </ul>
+            </li>
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link text-white dropdown-toggle {% if request.endpoint in ['listar_unidades','nova_unidade','listar_modelos','novo_modelo'] %}active{% endif %}"
+                href="#"
+                data-bs-toggle="dropdown"
+              >
+                <i class="bi bi-box-seam me-1"></i>Kits
               </a>
-              <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline-danger">
-                <i class="bi bi-box-arrow-right"></i>
+              <ul class="dropdown-menu dropdown-menu-dark border-0 shadow">
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{{ url_for('listar_unidades') }}"
+                  >
+                    <i class="bi bi-list-ul me-2"></i>Unidades Físicas
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('nova_unidade') }}">
+                    <i class="bi bi-plus-circle me-2"></i>Nova Unidade
+                  </a>
+                </li>
+                <li><hr class="dropdown-divider border-secondary" /></li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{{ url_for('listar_modelos') }}"
+                  >
+                    <i class="bi bi-layers me-2"></i>Modelos de Kit
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('novo_modelo') }}">
+                    <i class="bi bi-plus-circle me-2"></i>Novo Modelo
+                  </a>
+                </li>
+              </ul>
+            </li>
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link text-white dropdown-toggle {% if request.endpoint in ['listar_pecas','nova_peca'] %}active{% endif %}"
+                href="#"
+                data-bs-toggle="dropdown"
+              >
+                <i class="bi bi-puzzle me-1"></i>Peças
               </a>
-            </div>
+              <ul class="dropdown-menu dropdown-menu-dark border-0 shadow">
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('listar_pecas') }}">
+                    <i class="bi bi-list-ul me-2"></i>Catálogo de Peças
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('nova_peca') }}">
+                    <i class="bi bi-plus-circle me-2"></i>Nova Peça
+                  </a>
+                </li>
+              </ul>
+            </li>
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link text-white dropdown-toggle"
+                href="#"
+                data-bs-toggle="dropdown"
+              >
+                <i class="bi bi-gear-fill me-1"></i>Admin
+              </a>
+              <ul class="dropdown-menu dropdown-menu-dark border-0 shadow">
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{{ url_for('gerenciar_usuarios') }}"
+                  >
+                    <i class="bi bi-people me-2"></i>Gerenciar Equipe
+                  </a>
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{{ url_for('comparar_kits') }}"
+                  >
+                    <i class="bi bi-bar-chart-line me-2"></i>Comparar Kits
+                  </a>
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{{ url_for('etiquetas_admin') }}"
+                  >
+                    <i class="bi bi-qr-code me-2"></i>Etiquetas QR
+                  </a>
+                </li>
+                <li><hr class="dropdown-divider border-secondary" /></li>
+                <li
+                  class="dropdown-header text-uppercase small text-muted px-3"
+                >
+                  Relatórios
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{{ url_for('relatorio_geral_pdf', modo='completo') }}"
+                  >
+                    <i class="bi bi-file-earmark-pdf me-2 text-primary"></i>PDF
+                    Completo (todos os kits)
+                  </a>
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{{ url_for('relatorio_geral_pdf', modo='faltantes') }}"
+                  >
+                    <i class="bi bi-file-earmark-pdf me-2 text-danger"></i>PDF
+                    Somente Faltantes
+                  </a>
+                </li>
+                <li><hr class="dropdown-divider border-secondary" /></li>
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('api_tokens') }}">
+                    <i class="bi bi-braces-asterisk me-2"></i>API / Integrações
+                  </a>
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{{ url_for('conferencias_pendentes') }}"
+                  >
+                    <i class="bi bi-clock-history me-2"></i>Conferências
+                    Pendentes
+                  </a>
+                </li>
+              </ul>
+            </li>
+            {% endif %} {# ── PEDAGOGO ── #} {% if session.get('user_role') ==
+            'pedagogo' %}
+            <li class="nav-item">
+              <a
+                class="nav-link text-white {% if request.endpoint == 'dashboard_pedagogo' %}active{% endif %}"
+                href="{{ url_for('dashboard_pedagogo') }}"
+              >
+                <i class="bi bi-speedometer2 me-1"></i>Dashboard
+              </a>
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link text-white {% if request.endpoint == 'lista_escolas' %}active{% endif %}"
+                href="{{ url_for('lista_escolas') }}"
+              >
+                <i class="bi bi-building me-1"></i>Escolas
+              </a>
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link text-white {% if request.endpoint == 'listar_unidades' %}active{% endif %}"
+                href="{{ url_for('listar_unidades') }}"
+              >
+                <i class="bi bi-box-seam me-1"></i>Kits
+              </a>
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link text-white {% if request.endpoint == 'comparar_kits' %}active{% endif %}"
+                href="{{ url_for('comparar_kits') }}"
+              >
+                <i class="bi bi-bar-chart-line me-1"></i>Comparar
+              </a>
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link text-white {% if request.endpoint == 'listar_pecas' %}active{% endif %}"
+                href="{{ url_for('listar_pecas') }}"
+              >
+                <i class="bi bi-puzzle me-1"></i>Peças
+              </a>
+            </li>
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link text-white dropdown-toggle"
+                href="#"
+                data-bs-toggle="dropdown"
+              >
+                <i class="bi bi-file-earmark-pdf me-1"></i>Relatórios
+              </a>
+              <ul class="dropdown-menu">
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{{ url_for('relatorio_geral_pdf', modo='completo') }}"
+                  >
+                    <i class="bi bi-list-check me-2 text-primary"></i>PDF
+                    Completo
+                  </a>
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{{ url_for('relatorio_geral_pdf', modo='faltantes') }}"
+                  >
+                    <i class="bi bi-exclamation-triangle me-2 text-danger"></i
+                    >PDF Somente Faltantes
+                  </a>
+                </li>
+              </ul>
+            </li>
+            {% endif %} {# AUXILIAR #} {% if session.get('user_role') ==
+            'auxiliar' %}
+            <li class="nav-item">
+              <a
+                class="nav-link text-white {% if request.endpoint == 'dashboard_auxiliar' %}active{% endif %}"
+                href="{{ url_for('dashboard_auxiliar') }}"
+              >
+                <i class="bi bi-house-door me-1"></i>Início
+              </a>
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link text-white {% if request.endpoint == 'conferencias_auxiliar' %}active{% endif %}"
+                href="{{ url_for('conferencias_auxiliar') }}"
+              >
+                <i class="bi bi-clipboard-check me-1"></i>Conferências
+              </a>
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link text-white {% if request.endpoint == 'comparar_kits' %}active{% endif %}"
+                href="{{ url_for('comparar_kits') }}"
+              >
+                <i class="bi bi-bar-chart-line me-1"></i>Comparar
+              </a>
+            </li>
+            {# Peças e Modelos — permissão expandida para auxiliar #} {% if
+            session.get('user_role') in ['admin', 'auxiliar'] %}
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link text-white dropdown-toggle"
+                href="#"
+                data-bs-toggle="dropdown"
+              >
+                <i class="bi bi-puzzle me-1"></i>Catálogo
+              </a>
+              <ul class="dropdown-menu shadow-sm">
+                <li>
+                  <a
+                    class="dropdown-item {% if request.endpoint == 'listar_pecas' %}active{% endif %}"
+                    href="{{ url_for('listar_pecas') }}"
+                  >
+                    <i class="bi bi-puzzle me-2"></i>Peças
+                  </a>
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item {% if request.endpoint == 'nova_peca' %}active{% endif %}"
+                    href="{{ url_for('nova_peca') }}"
+                  >
+                    <i class="bi bi-plus-circle me-2"></i>Nova Peça
+                  </a>
+                </li>
+                <li><hr class="dropdown-divider" /></li>
+                <li>
+                  <a
+                    class="dropdown-item {% if request.endpoint in ['listar_modelos', 'novo_modelo'] %}active{% endif %}"
+                    href="{{ url_for('listar_modelos') }}"
+                  >
+                    <i class="bi bi-box-seam me-2"></i>Modelos de Kit
+                  </a>
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item {% if request.endpoint == 'novo_modelo' %}active{% endif %}"
+                    href="{{ url_for('novo_modelo') }}"
+                  >
+                    <i class="bi bi-plus-circle me-2"></i>Novo Modelo
+                  </a>
+                </li>
+              </ul>
+            </li>
             {% endif %}
-        </div>
-    </div>
-</nav>
+            <li class="nav-item">
+              <a
+                class="nav-link text-white"
+                href="{{ url_for('etiquetas_auxiliar') }}"
+              >
+                <i class="bi bi-qr-code me-1"></i>Etiquetas
+              </a>
+            </li>
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link text-white dropdown-toggle"
+                href="#"
+                data-bs-toggle="dropdown"
+              >
+                <i class="bi bi-file-earmark-pdf me-1"></i>Relatórios
+              </a>
+              <ul class="dropdown-menu">
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{{ url_for('relatorio_escola_view', nome_escola=session.get('user_escola', ''), modo='completo') }}"
+                  >
+                    <i class="bi bi-list-check me-2 text-primary"></i>Ver
+                    relatório completo
+                  </a>
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{{ url_for('relatorio_escola_view', nome_escola=session.get('user_escola', ''), modo='faltantes') }}"
+                  >
+                    <i class="bi bi-exclamation-triangle me-2 text-danger"></i
+                    >Ver faltantes
+                  </a>
+                </li>
+                <li><hr class="dropdown-divider" /></li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{{ url_for('relatorio_escola_pdf', nome_escola=session.get('user_escola', ''), modo='completo') }}"
+                  >
+                    <i class="bi bi-file-earmark-pdf me-2 text-primary"></i>PDF
+                    completo
+                  </a>
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{{ url_for('relatorio_escola_pdf', nome_escola=session.get('user_escola', ''), modo='faltantes') }}"
+                  >
+                    <i class="bi bi-file-earmark-pdf me-2 text-danger"></i>PDF
+                    faltantes
+                  </a>
+                </li>
+              </ul>
+            </li>
+            {% endif %}
+          </ul>
 
-{# ── CONTEÚDO ── #}
-<main class="container-fluid px-4 py-4">
-
-    {# FLASH MESSAGES #}
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-        <div class="mb-3">
-            {% for category, message in messages %}
-            <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
-                <i class="bi {% if category == 'success' %}bi-check-circle-fill
-                             {% elif category == 'danger' %}bi-exclamation-triangle-fill
-                             {% elif category == 'warning' %}bi-exclamation-circle-fill
-                             {% else %}bi-info-circle-fill{% endif %} me-2"></i>
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          {# ── PERFIL + BUSCA ── #} {% if session.get('user_id') %}
+          <div class="d-flex align-items-center gap-2">
+            {# BUSCA GLOBAL #}
+            <div
+              class="position-relative d-none d-lg-block"
+              style="width: 220px"
+            >
+              <input
+                type="text"
+                id="globalSearch"
+                class="form-control form-control-sm bg-dark text-white border-secondary"
+                placeholder="🔍 Buscar kit, peça, escola..."
+                autocomplete="off"
+                style="padding-right: 2rem"
+              />
+              <div
+                id="searchResults"
+                class="dropdown-menu dropdown-menu-dark w-100 p-0 shadow"
+                style="
+                  display: none;
+                  max-height: 360px;
+                  overflow-y: auto;
+                  font-size: 0.85rem;
+                "
+              ></div>
             </div>
-            {% endfor %}
+
+            {# SCAN QR #}
+            <a
+              href="{{ url_for('scan_qr') }}"
+              class="btn btn-sm btn-outline-secondary text-white border-secondary"
+              title="Scan QR Code"
+            >
+              <i class="bi bi-qr-code-scan"></i>
+            </a>
+
+            {# PENDENTES — só admin/pedagogo/auxiliar #}
+            <a
+              href="{{ url_for('conferencias_pendentes') }}"
+              class="btn btn-sm btn-outline-warning text-warning border-warning d-none d-md-inline-flex"
+              title="Conferências pendentes"
+            >
+              <i class="bi bi-clock-history"></i>
+            </a>
+
+            <span
+              class="badge {% if session['user_role'] == 'admin' %}badge-admin {% elif session['user_role'] == 'pedagogo' %}badge-pedagogo {% else %}badge-auxiliar{% endif %} px-2 py-1 d-none d-xl-inline"
+            >
+              <i class="bi bi-person-fill me-1"></i>{{ session['username'] }}
+              <span class="opacity-75"
+                >({{ session['user_role']|capitalize }})</span
+              >
+            </span>
+            <a
+              href="{{ url_for('trocar_senha') }}"
+              class="btn btn-sm btn-outline-secondary text-white border-secondary"
+            >
+              <i class="bi bi-key"></i>
+            </a>
+            <a
+              href="{{ url_for('logout') }}"
+              class="btn btn-sm btn-outline-danger"
+            >
+              <i class="bi bi-box-arrow-right"></i>
+            </a>
+          </div>
+          {% endif %}
         </div>
-        {% endif %}
-    {% endwith %}
+      </div>
+    </nav>
 
-    {% block content %}{% endblock %}
-</main>
+    {# ── CONTEÚDO ── #}
+    <main class="container-fluid px-4 py-4">
+      {# FLASH MESSAGES #} {% with messages =
+      get_flashed_messages(with_categories=true) %} {% if messages %}
+      <div class="mb-3">
+        {% for category, message in messages %}
+        <div
+          class="alert alert-{{ category }} alert-dismissible fade show shadow-sm"
+          role="alert"
+        >
+          <i
+            class="bi {% if category == 'success' %}bi-check-circle-fill {% elif category == 'danger' %}bi-exclamation-triangle-fill {% elif category == 'warning' %}bi-exclamation-circle-fill {% else %}bi-info-circle-fill{% endif %} me-2"
+          ></i>
+          {{ message }}
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+          ></button>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %} {% endwith %} {% block content %}{% endblock %}
+    </main>
 
-<footer class="text-center py-3 mt-2 no-print">
-    <span class="text-muted">LEGO Inventory &copy; {{ now.year if now else 2025 }} — Sistema de Gestão de Kits Educacionais</span>
-</footer>
+    <footer class="text-center py-3 mt-2 no-print">
+      <span class="text-muted"
+        >LEGO Inventory &copy; {{ now.year if now else 2025 }} — Sistema de
+        Gestão de Kits Educacionais</span
+      >
+    </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-{% block extra_js %}{% endblock %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
 
-<script>
-// ── BUSCA GLOBAL ─────────────────────────────────────────────────────────────
-(function() {
-  const inp = document.getElementById('globalSearch');
-  const box = document.getElementById('searchResults');
-  if (!inp) return;
+    <script>
+      // ── BUSCA GLOBAL ─────────────────────────────────────────────────────────────
+      (function () {
+        const inp = document.getElementById("globalSearch");
+        const box = document.getElementById("searchResults");
+        if (!inp) return;
 
-  let timer;
-  inp.addEventListener('input', function() {
-    clearTimeout(timer);
-    const q = this.value.trim();
-    if (q.length < 2) { box.style.display = 'none'; return; }
-    timer = setTimeout(() => buscar(q), 280);
-  });
+        let timer;
+        inp.addEventListener("input", function () {
+          clearTimeout(timer);
+          const q = this.value.trim();
+          if (q.length < 2) {
+            box.style.display = "none";
+            return;
+          }
+          timer = setTimeout(() => buscar(q), 280);
+        });
 
-  inp.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') { box.style.display = 'none'; this.blur(); }
-  });
+        inp.addEventListener("keydown", function (e) {
+          if (e.key === "Escape") {
+            box.style.display = "none";
+            this.blur();
+          }
+        });
 
-  document.addEventListener('click', function(e) {
-    if (!inp.contains(e.target) && !box.contains(e.target)) box.style.display = 'none';
-  });
+        document.addEventListener("click", function (e) {
+          if (!inp.contains(e.target) && !box.contains(e.target))
+            box.style.display = "none";
+        });
 
-  async function buscar(q) {
-    try {
-      const res = await fetch(`/busca?q=${encodeURIComponent(q)}`);
-      const data = await res.json();
-      renderizar(data);
-    } catch(e) { box.style.display = 'none'; }
-  }
+        async function buscar(q) {
+          try {
+            const res = await fetch(`/busca?q=${encodeURIComponent(q)}`);
+            const data = await res.json();
+            renderizar(data);
+          } catch (e) {
+            box.style.display = "none";
+          }
+        }
 
-  function renderizar(data) {
-    const { kits, pecas, escolas } = data;
-    const temResultados = kits.length || pecas.length || escolas.length;
-    if (!temResultados) {
-      box.innerHTML = '<div class="px-3 py-2 text-muted small">Nenhum resultado encontrado</div>';
-      box.style.display = 'block'; return;
-    }
+        function renderizar(data) {
+          const { kits, pecas, escolas } = data;
+          const temResultados = kits.length || pecas.length || escolas.length;
+          if (!temResultados) {
+            box.innerHTML =
+              '<div class="px-3 py-2 text-muted small">Nenhum resultado encontrado</div>';
+            box.style.display = "block";
+            return;
+          }
 
-    let html = '';
-    const statusCor = { Completo: 'success', Incompleto: 'danger', Pendente: 'warning' };
+          let html = "";
+          const statusCor = {
+            Completo: "success",
+            Incompleto: "danger",
+            Pendente: "warning",
+          };
 
-    if (kits.length) {
-      html += `<div class="px-3 pt-2 pb-1"><small class="text-muted fw-bold text-uppercase" style="letter-spacing:.06em">Kits</small></div>`;
-      kits.forEach(k => {
-        const cor = statusCor[k.status] || 'secondary';
-        html += `<a href="${k.url}" class="dropdown-item d-flex align-items-center gap-2 py-2">
+          if (kits.length) {
+            html += `<div class="px-3 pt-2 pb-1"><small class="text-muted fw-bold text-uppercase" style="letter-spacing:.06em">Kits</small></div>`;
+            kits.forEach((k) => {
+              const cor = statusCor[k.status] || "secondary";
+              html += `<a href="${k.url}" class="dropdown-item d-flex align-items-center gap-2 py-2">
           <i class="bi bi-box-seam text-primary"></i>
           <div class="flex-grow-1">
             <span class="fw-semibold">${k.nome}</span>
             <small class="text-muted ms-2">${k.escola}</small>
           </div>
-          <span class="badge bg-${cor} text-${cor==='warning'?'dark':'light'}">${k.status}</span>
+          <span class="badge bg-${cor} text-${cor === "warning" ? "dark" : "light"}">${k.status}</span>
         </a>`;
-      });
-    }
-    if (pecas.length) {
-      html += `<div class="dropdown-divider border-secondary mx-0 my-1"></div>`;
-      html += `<div class="px-3 pt-1 pb-1"><small class="text-muted fw-bold text-uppercase" style="letter-spacing:.06em">Peças</small></div>`;
-      pecas.forEach(p => {
-        html += `<a href="${p.url}" class="dropdown-item d-flex align-items-center gap-2 py-2">
+            });
+          }
+          if (pecas.length) {
+            html += `<div class="dropdown-divider border-secondary mx-0 my-1"></div>`;
+            html += `<div class="px-3 pt-1 pb-1"><small class="text-muted fw-bold text-uppercase" style="letter-spacing:.06em">Peças</small></div>`;
+            pecas.forEach((p) => {
+              html += `<a href="${p.url}" class="dropdown-item d-flex align-items-center gap-2 py-2">
           <i class="bi bi-puzzle text-warning"></i>
           <div>
             <span class="fw-semibold">${p.nome}</span>
             <small class="text-muted d-block">${p.codigo}</small>
           </div>
         </a>`;
-      });
-    }
-    if (escolas.length) {
-      html += `<div class="dropdown-divider border-secondary mx-0 my-1"></div>`;
-      html += `<div class="px-3 pt-1 pb-1"><small class="text-muted fw-bold text-uppercase" style="letter-spacing:.06em">Escolas</small></div>`;
-      escolas.forEach(e => {
-        html += `<a href="${e.url}" class="dropdown-item d-flex align-items-center gap-2 py-2">
+            });
+          }
+          if (escolas.length) {
+            html += `<div class="dropdown-divider border-secondary mx-0 my-1"></div>`;
+            html += `<div class="px-3 pt-1 pb-1"><small class="text-muted fw-bold text-uppercase" style="letter-spacing:.06em">Escolas</small></div>`;
+            escolas.forEach((e) => {
+              html += `<a href="${e.url}" class="dropdown-item d-flex align-items-center gap-2 py-2">
           <i class="bi bi-building text-success"></i>
           <span class="fw-semibold">${e.nome}</span>
         </a>`;
-      });
-    }
+            });
+          }
 
-    box.innerHTML = html;
-    box.style.display = 'block';
-  }
-})();
-</script>
-</body>
+          box.innerHTML = html;
+          box.style.display = "block";
+        }
+      })();
+    </script>
+  </body>
 </html>
