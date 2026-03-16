@@ -615,14 +615,14 @@ def api_escolas():
 #  PEÇAS
 # ─────────────────────────────────────────────
 @app.route('/admin/pecas')
-@login_required(roles=['admin', 'pedagogo'])
+@login_required(roles=['admin', 'pedagogo', 'auxiliar'])
 def listar_pecas():
     pecas = Peca.query.order_by(Peca.nome).all()
     return render_template('admin/lista_pecas.html', pecas=pecas)
 
 
 @app.route('/admin/pecas/novo', methods=['GET', 'POST'])
-@login_required(roles='admin')
+@login_required(roles=['admin', 'auxiliar'])
 def nova_peca():
     if request.method == 'POST':
         codigo = request.form.get('codigo_lego', '').strip()
@@ -698,7 +698,7 @@ def listar_modelos():
 
 
 @app.route('/admin/modelo/novo', methods=['GET', 'POST'])
-@login_required(roles='admin')
+@login_required(roles=['admin', 'auxiliar'])
 def novo_modelo():
     if request.method == 'POST':
         nome = request.form.get('nome', '').strip()
@@ -762,7 +762,7 @@ def deletar_modelo(mid):
 
 
 @app.route('/admin/modelo/<int:modelo_id>/composicao', methods=['GET', 'POST'])
-@login_required(roles='admin')
+@login_required(roles=['admin', 'auxiliar'])
 def gerenciar_composicao(modelo_id):
     modelo = KitModelo.query.get_or_404(modelo_id)
     pecas_catalogo = Peca.query.order_by(Peca.nome).all()
@@ -789,7 +789,7 @@ def gerenciar_composicao(modelo_id):
 
 
 @app.route('/admin/composicao/remover/<int:item_id>', methods=['POST'])
-@login_required(roles='admin')
+@login_required(roles=['admin', 'auxiliar'])
 def remover_item_composicao(item_id):
     item = ComposicaoKit.query.get_or_404(item_id)
     modelo_id = item.kit_modelo_id
@@ -797,6 +797,28 @@ def remover_item_composicao(item_id):
     db.session.commit()
     flash('Peça removida do kit.', 'info')
     return redirect(url_for('gerenciar_composicao', modelo_id=modelo_id))
+
+
+@app.route('/api/composicao/ajustar_quantidade', methods=['POST'])
+@login_required(roles=['admin', 'auxiliar'])
+def ajustar_quantidade_composicao():
+    data = request.get_json()
+    item_id = data.get('item_id')
+    delta = data.get('delta')
+
+    item = ComposicaoKit.query.get_or_404(item_id)
+    nova_qtd = item.quantidade_esperada + delta
+
+    if nova_qtd < 1:
+        return jsonify({'status': 'erro', 'mensagem': 'A quantidade mínima é 1.'}), 400
+
+    item.quantidade_esperada = nova_qtd
+    db.session.commit()
+
+    return jsonify({
+        'status': 'sucesso',
+        'nova_quantidade': item.quantidade_esperada
+    })
 
 
 # ─────────────────────────────────────────────
