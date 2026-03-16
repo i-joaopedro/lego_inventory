@@ -127,6 +127,9 @@
                         <i class="bi bi-speedometer2 me-1"></i>Dashboard
                     </a>
                 </li>
+                {% endif %}
+
+                {% if session.get('user_role') == 'admin' %}
                 <li class="nav-item dropdown">
                     <a class="nav-link text-white dropdown-toggle
                        {% if request.endpoint in ['lista_escolas','nova_escola','editar_escola','detalhe_escola'] %}active{% endif %}"
@@ -142,6 +145,9 @@
                         </a></li>
                     </ul>
                 </li>
+                {% endif %}
+
+                {% if session.get('user_role') in ['admin', 'auxiliar'] %}
                 <li class="nav-item dropdown">
                     <a class="nav-link text-white dropdown-toggle
                        {% if request.endpoint in ['listar_unidades','nova_unidade','listar_modelos','novo_modelo'] %}active{% endif %}"
@@ -149,6 +155,7 @@
                         <i class="bi bi-box-seam me-1"></i>Kits
                     </a>
                     <ul class="dropdown-menu dropdown-menu-dark border-0 shadow">
+                        {% if session.get('user_role') == 'admin' %}
                         <li><a class="dropdown-item" href="{{ url_for('listar_unidades') }}">
                             <i class="bi bi-list-ul me-2"></i>Unidades Físicas
                         </a></li>
@@ -156,6 +163,7 @@
                             <i class="bi bi-plus-circle me-2"></i>Nova Unidade
                         </a></li>
                         <li><hr class="dropdown-divider border-secondary"></li>
+                        {% endif %}
                         <li><a class="dropdown-item" href="{{ url_for('listar_modelos') }}">
                             <i class="bi bi-layers me-2"></i>Modelos de Kit
                         </a></li>
@@ -179,6 +187,10 @@
                         </a></li>
                     </ul>
                 </li>
+                {% endif %}
+
+                {# ── ADMIN ONLY ── #}
+                {% if session.get('user_role') == 'admin' %}
                 <li class="nav-item dropdown">
                     <a class="nav-link text-white dropdown-toggle" href="#" data-bs-toggle="dropdown">
                         <i class="bi bi-gear-fill me-1"></i>Admin

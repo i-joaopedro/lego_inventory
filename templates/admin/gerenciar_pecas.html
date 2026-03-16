@@ -64,7 +64,19 @@
                             <td><code class="small">{{ item.peca.codigo_lego }}</code></td>
                             <td class="fw-semibold small">{{ item.peca.nome }}</td>
                             <td class="text-center">
-                                <span class="badge bg-secondary">{{ item.quantidade_esperada }}</span>
+                                <div class="d-flex align-items-center justify-content-center gap-2">
+                                    <button class="btn btn-sm btn-outline-secondary py-0 px-2"
+                                            onclick="ajustarQuantidade({{ item.id }}, -1)">
+                                        <i class="bi bi-dash"></i>
+                                    </button>
+                                    <span class="badge bg-secondary" id="qtd-{{ item.id }}">
+                                        {{ item.quantidade_esperada }}
+                                    </span>
+                                    <button class="btn btn-sm btn-outline-secondary py-0 px-2"
+                                            onclick="ajustarQuantidade({{ item.id }}, 1)">
+                                        <i class="bi bi-plus"></i>
+                                    </button>
+                                </div>
                             </td>
                             <td class="text-end">
                                 <form method="POST"
@@ -90,4 +102,43 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function ajustarQuantidade(itemId, delta) {
+    const span = document.getElementById(`qtd-${itemId}`);
+    const originalValue = parseInt(span.innerText);
+    const newValue = originalValue + delta;
+
+    if (newValue < 1) return;
+
+    // Feedback visual imediato (opcional)
+    span.innerText = "...";
+
+    try {
+        const response = await fetch("{{ url_for('ajustar_quantidade_composicao') }}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token() }}"
+            },
+            body: JSON.stringify({ item_id: itemId, delta: delta })
+        });
+
+        const data = await response.json();
+
+        if (data.status === "sucesso") {
+            span.innerText = data.nova_quantidade;
+        } else {
+            alert(data.mensagem || "Erro ao atualizar quantidade.");
+            span.innerText = originalValue;
+        }
+    } catch (error) {
+        console.error("Erro:", error);
+        alert("Erro de conexão com o servidor.");
+        span.innerText = originalValue;
+    }
+}
+</script>
 {% endblock %}
